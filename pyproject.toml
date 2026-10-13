@@ -1,0 +1,60 @@
+[project]
+name = "genai-recommender"
+version = "0.1.0"
+description = "Next-content and channel recommendations for a field-plus-digital commercial team, with grounded message drafts"
+requires-python = ">=3.11,<3.13"
+license = { text = "MIT" }
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "scikit-learn>=1.5",
+    # 2.10+ ships macOS wheels for 14+ only; 2.9 still covers macOS 13 hosts.
+    "torch>=2.4,<2.10",
+]
+
+[project.scripts]
+genai-reco = "genai_recommender.cli:main"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15",
+    "pytest>=8.3",
+    "ruff>=0.11",
+    "pandas-stubs>=2.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/genai_recommender"]
+
+# CPU wheels only: the CUDA build is ~2 GB and nothing here needs a GPU.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# X and y follow the usual feature-matrix / label notation.
+"src/genai_recommender/channel.py" = ["N803", "N806"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src"]
+ignore_missing_imports = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
