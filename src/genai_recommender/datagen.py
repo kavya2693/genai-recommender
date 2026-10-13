@@ -287,7 +287,7 @@ def _bots(rng: np.random.Generator, cust: pd.DataFrame, items: pd.DataFrame, sca
     for c in rng.choice(len(cust), n_bots, replace=False):
         day = int(rng.integers(200, DAYS))
         released = np.where(items["release_day"].to_numpy() <= day)[0]
-        n = int(min(len(released), rng.integers(150, 300)))
+        n = min(len(released), int(rng.integers(150, 300)))
         picked = rng.choice(released, n, replace=False)
         for j, i in enumerate(picked):
             rows.append(dict(ci=int(c), ii=int(i), t=day + 0.4 + j * 1e-4, source="bot", channel="email"))
@@ -380,7 +380,8 @@ def _sends(
     df = df.sort_values(["ci", "day"]).reset_index(drop=True)
     # Touches in the previous seven days, the fatigue term.
     recent = np.zeros(len(df))
-    prev_c, window = -1, []
+    prev_c = -1
+    window: list[int] = []
     for j, (c, d) in enumerate(zip(df["ci"].to_numpy(), df["day"].to_numpy(), strict=True)):
         if c != prev_c:
             prev_c, window = c, []

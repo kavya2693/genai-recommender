@@ -9,6 +9,7 @@ dependencies = [
     "pandas>=2.2",
     "scikit-learn>=1.5",
     # 2.10+ ships macOS wheels for 14+ only; 2.9 still covers macOS 13 hosts.
+    "scipy>=1.13",
     "torch>=2.4,<2.10",
 ]
 
