@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - run: uv sync --locked
+
+      - name: lint
+        run: uv run ruff check .
+
+      - name: format
+        run: uv run ruff format --check .
+
+      - name: types
+        run: uv run mypy
+
+      # No model server: drafts use the stub model, and BERT4Rec trains for a few epochs on a
+      # small generated dataset.
+      - name: tests
+        run: uv run pytest -q
+
+      - name: end-to-end smoke run
+        run: uv run genai-reco --quick --refresh --customers 1500 --latency-n 100
