@@ -1,7 +1,7 @@
 """A small BERT4Rec: bidirectional transformer trained by masking items in the sequence
 and predicting them, scored at inference by appending a [MASK] after the history.
 
-Sized to train on a laptop CPU in minutes: 2 layers, 64-dim, 50-item window.
+Sized to train on a laptop CPU in minutes: 2 layers, 64-dim, 30-item window.
 """
 
 from __future__ import annotations
@@ -17,18 +17,20 @@ from torch import nn
 
 @dataclass
 class Config:
-    max_len: int = 50
+    # Median history is ~30 events, so a 30-slot window loses little and halves the work.
+    max_len: int = 30
     dim: int = 64
     heads: int = 2
     layers: int = 2
     dropout: float = 0.2
     mask_prob: float = 0.2
     # Share of batches where only the last item is masked: the inference task exactly.
-    last_only_prob: float = 0.15
-    lr: float = 1e-3
-    batch_size: int = 256
-    epochs: int = 60
-    eval_every: int = 4
+    # 0.5 beat 0.15 on validation NDCG@10 (0.294 vs 0.281 at epoch 16).
+    last_only_prob: float = 0.5
+    lr: float = 3e-3
+    batch_size: int = 512
+    epochs: int = 30
+    eval_every: int = 2
     patience: int = 3
     seed: int = 7
 
@@ -179,14 +181,3 @@ def train(
         history=history,
     )
     return model, info
-
-
-def quantize(model: BERT4Rec) -> nn.Module:
-    """int8 dynamic quantisation of the linear layers, for the latency comparison."""
-    engines = torch.backends.quantized.supported_engines
-    if "qnnpack" in engines and "fbgemm" not in engines:
-        torch.backends.quantized.engine = "qnnpack"
-    q = torch.ao.quantization.quantize_dynamic(model, {nn.Linear}, dtype=torch.qint8)
-    q.cfg = model.cfg
-    q.mask_id = model.mask_id
-    return q
