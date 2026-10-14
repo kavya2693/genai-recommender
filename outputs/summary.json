@@ -1,0 +1,195 @@
+{
+  "ranking": [
+    {
+      "model": "popularity",
+      "HR@10": 0.05,
+      "NDCG@10": 0.0242,
+      "coverage@10": 0.1083
+    },
+    {
+      "model": "item-kNN",
+      "HR@10": 0.1856,
+      "NDCG@10": 0.1017,
+      "coverage@10": 0.8875
+    },
+    {
+      "model": "last-item Markov",
+      "HR@10": 0.4214,
+      "NDCG@10": 0.3158,
+      "coverage@10": 0.9562
+    },
+    {
+      "model": "BERT4Rec",
+      "HR@10": 0.3882,
+      "NDCG@10": 0.3034,
+      "coverage@10": 0.9542
+    }
+  ],
+  "bert4rec": {
+    "config": {
+      "max_len": 30,
+      "dim": 64,
+      "heads": 2,
+      "layers": 2,
+      "dropout": 0.2,
+      "mask_prob": 0.2,
+      "last_only_prob": 0.5,
+      "lr": 0.003,
+      "batch_size": 512,
+      "epochs": 30,
+      "eval_every": 2,
+      "patience": 3,
+      "seed": 7
+    },
+    "best_epoch": 22,
+    "best_valid_ndcg10": 0.3034,
+    "train_seconds": 196.0,
+    "parameters": 133345
+  },
+  "channel_calibration": [
+    {
+      "model": "logistic regression",
+      "AUC": 0.6826,
+      "log loss": 0.4499,
+      "Brier": 0.1418,
+      "ECE": 0.0053
+    },
+    {
+      "model": "GBM, raw",
+      "AUC": 0.6897,
+      "log loss": 0.4454,
+      "Brier": 0.14,
+      "ECE": 0.0051
+    },
+    {
+      "model": "GBM + isotonic",
+      "AUC": 0.6891,
+      "log loss": 0.4467,
+      "Brier": 0.1401,
+      "ECE": 0.0046
+    }
+  ],
+  "channel_policy": [
+    {
+      "policy": "logged (historical) policy",
+      "expected engagement": 0.1898,
+      "engaged per 1k touches": 189.7675,
+      "rep share": 0.1328,
+      "sms share": 0.1166,
+      "share of oracle lift": 0.0
+    },
+    {
+      "policy": "email unless opted out",
+      "expected engagement": 0.172,
+      "engaged per 1k touches": 171.9763,
+      "rep share": 0.0259,
+      "sms share": 0.0377,
+      "share of oracle lift": -0.6508
+    },
+    {
+      "policy": "model, same rep budget",
+      "expected engagement": 0.2066,
+      "engaged per 1k touches": 206.6443,
+      "rep share": 0.115,
+      "sms share": 0.0466,
+      "share of oracle lift": 0.6173
+    },
+    {
+      "policy": "oracle, same rep budget",
+      "expected engagement": 0.2171,
+      "engaged per 1k touches": 217.1052,
+      "rep share": 0.1175,
+      "sms share": 0.1101,
+      "share of oracle lift": 1.0
+    }
+  ],
+  "retrieval": [
+    {
+      "arm": "all statuses indexed",
+      "queries": 79,
+      "precision@3": 0.5485,
+      "all right snippets found": 0.3165,
+      "any unapproved claim retrieved": 0.7342,
+      "any other-brand claim retrieved": 0.0127
+    },
+    {
+      "arm": "approved only",
+      "queries": 79,
+      "precision@3": 0.9451,
+      "all right snippets found": 0.9747,
+      "any unapproved claim retrieved": 0.0,
+      "any other-brand claim retrieved": 0.1519
+    },
+    {
+      "arm": "approved only + brand filter",
+      "queries": 79,
+      "precision@3": 0.9536,
+      "all right snippets found": 1.0,
+      "any unapproved claim retrieved": 0.0,
+      "any other-brand claim retrieved": 0.0
+    }
+  ],
+  "latency": [
+    {
+      "stage": "rank",
+      "p50 ms": 0.67,
+      "p95 ms": 0.78,
+      "max ms": 9.78,
+      "requests": 300
+    },
+    {
+      "stage": "channel",
+      "p50 ms": 18.94,
+      "p95 ms": 21.4,
+      "max ms": 50.19,
+      "requests": 300
+    },
+    {
+      "stage": "retrieve+draft",
+      "p50 ms": 0.8,
+      "p95 ms": 1.1,
+      "max ms": 2.87,
+      "requests": 300
+    },
+    {
+      "stage": "total",
+      "p50 ms": 20.44,
+      "p95 ms": 23.27,
+      "max ms": 53.82,
+      "requests": 300
+    }
+  ],
+  "stub_grounded_share": 1.0,
+  "llm_demo": {
+    "model": "llama3.2",
+    "samples": 3,
+    "grounded": 3,
+    "draft_ms": [
+      5570,
+      6178,
+      6605
+    ]
+  },
+  "split": {
+    "users": 19960,
+    "train_events": 576746
+  },
+  "scanners_dropped": 40,
+  "quick": false,
+  "config": {
+    "max_len": 30,
+    "dim": 64,
+    "heads": 2,
+    "layers": 2,
+    "dropout": 0.2,
+    "mask_prob": 0.2,
+    "last_only_prob": 0.5,
+    "lr": 0.003,
+    "batch_size": 512,
+    "epochs": 30,
+    "eval_every": 2,
+    "patience": 3,
+    "seed": 7
+  },
+  "wall_seconds": 233.4
+}

@@ -1,0 +1,65 @@
+dropped 40 customers with link-scanner bursts
+split: {'users': 19960, 'train_events': 576746}
+training BERT4Rec
+  epoch   2  loss 5.706  valid NDCG@10 0.0908
+  epoch   4  loss 5.435  valid NDCG@10 0.1436
+  epoch   6  loss 5.263  valid NDCG@10 0.1992
+  epoch   8  loss 5.141  valid NDCG@10 0.2508
+  epoch  10  loss 5.031  valid NDCG@10 0.2694
+  epoch  12  loss 4.925  valid NDCG@10 0.2823
+  epoch  14  loss 4.896  valid NDCG@10 0.2900
+  epoch  16  loss 4.838  valid NDCG@10 0.2943
+  epoch  18  loss 4.802  valid NDCG@10 0.2947
+  epoch  20  loss 4.759  valid NDCG@10 0.3016
+  epoch  22  loss 4.767  valid NDCG@10 0.3034
+  epoch  24  loss 4.743  valid NDCG@10 0.3028
+  epoch  26  loss 4.710  valid NDCG@10 0.3023
+  epoch  28  loss 4.725  valid NDCG@10 0.2992
+
+ranking, full catalogue, last event held out
+           model    HR@10  NDCG@10  coverage@10
+      popularity 0.050000 0.024224     0.108333
+        item-kNN 0.185571 0.101681     0.887500
+last-item Markov 0.421393 0.315764     0.956250
+        BERT4Rec 0.388176 0.303406     0.954167
+
+NDCG@10 by slice
+model               BERT4Rec  item-kNN  last-item Markov  popularity
+slice                                                               
+new_content=False      0.306     0.103             0.318       0.024
+new_content=True       0.059     0.003             0.052       0.000
+step=pathway           0.232     0.064             0.365       0.014
+step=pref              0.038     0.050             0.027       0.022
+step=series            0.999     0.211             1.000       0.033
+step=series_resume     0.461     0.213             0.375       0.040
+
+channel model, last 20% of sends by time
+              model      AUC  log loss    Brier      ECE
+logistic regression 0.682554  0.449924 0.141821 0.005339
+           GBM, raw 0.689695  0.445400 0.139961 0.005145
+     GBM + isotonic 0.689145  0.446744 0.140061 0.004588
+
+channel policy, scored by true engagement probability
+                    policy  expected engagement  engaged per 1k touches  rep share  sms share  share of oracle lift
+logged (historical) policy             0.189767              189.767450   0.132779   0.116603              0.000000
+    email unless opted out             0.171976              171.976320   0.025899   0.037688             -0.650790
+    model, same rep budget             0.206644              206.644305   0.115045   0.046563              0.617346
+   oracle, same rep budget             0.217105              217.105201   0.117501   0.110099              1.000000
+
+claim retrieval, k=3
+                         arm  queries  precision@3  all right snippets found  any unapproved claim retrieved  any other-brand claim retrieved
+        all statuses indexed       79     0.548523                  0.316456                        0.734177                         0.012658
+               approved only       79     0.945148                  0.974684                        0.000000                         0.151899
+approved only + brand filter       79     0.953586                  1.000000                        0.000000                         0.000000
+
+request latency, 300 requests, 1 thread, stub drafter
+         stage  p50 ms  p95 ms  max ms  requests
+          rank    0.67    0.78    9.78       300
+       channel   18.94   21.40   50.19       300
+retrieve+draft    0.80    1.10    2.87       300
+         total   20.44   23.27   53.82       300
+stub drafts passing the grounding check: 100.0%
+
+llama3.2 demo drafts: {'model': 'llama3.2', 'samples': 3, 'grounded': 3, 'draft_ms': [5570, 6178, 6605]}
+
+done in 233.4s; outputs in outputs/
