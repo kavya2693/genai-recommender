@@ -27,6 +27,13 @@ def test_grounding_check_catches_an_invented_number():
     assert not bad["grounded"] and bad["ungrounded"] == ["41"]
 
 
+def test_citation_labels_pass_only_for_retrieved_claims():
+    claims = pd.DataFrame(dict(snippet_id=[21], text=["Brand cut the endpoint by 31% at week 24."]))
+    assert rag.grounding_check("Cut by 31% at week 24 (S21).", claims, "Title")["grounded"]
+    bad = rag.grounding_check("Cut by 31% at week 24 [S22].", claims, "Title")
+    assert bad["ungrounded"] == ["22"]
+
+
 def test_stub_drafter_quotes_an_approved_claim(tiny_data):
     t = load(tiny_data)
     d = rag.Drafter(rag.SnippetIndex().fit(t.snippets), rag.StubLLM())

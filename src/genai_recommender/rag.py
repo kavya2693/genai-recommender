@@ -25,6 +25,7 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?")
+CITATION = re.compile(r"\bS(\d+)\b")
 
 
 class SnippetIndex:
@@ -163,6 +164,10 @@ def grounding_check(draft: str, claims: pd.DataFrame, title: str) -> dict[str, o
     """Every number in the draft must appear in a retrieved approved claim (or the content
     title). A number that does not is either invented or copied from somewhere it should not be."""
     allowed = set(NUMBER.findall(" ".join(claims["text"]) + " " + title))
+    # The prompt labels each claim [S<id>], and models copy those labels as citations. A label
+    # for a retrieved claim is not a factual number; a label for any other id still fails.
+    retrieved = {str(i) for i in claims["snippet_id"]}
+    draft = CITATION.sub(lambda m: "" if m.group(1) in retrieved else m.group(0), draft)
     found = NUMBER.findall(draft)
     bad = sorted({n for n in found if n not in allowed})
     return {"numbers": len(found), "ungrounded": bad, "grounded": not bad}
