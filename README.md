@@ -8,6 +8,203 @@ Next piece of content, the channel to send it through, and a message that only q
 claims, for a commercial team that reaches 20,000 prescribers by email, SMS and rep visits.
 Measured against the baselines it has to beat, including the one it does not.
 
+[![86-second silent walkthrough: the problem, the three decisions, the architecture, the results, the finding that did not go to plan and the weekly outreach sheet](docs/demo/demo.gif)](docs/demo/demo.mp4)
+
+*86-second silent walkthrough. Click for the full video ([MP4, 5 MB](docs/demo/demo.mp4)).*
+
+📄 **Audit report:** every figure and assumption in the video, traced to its source — [PDF](docs/demo/AUDIT_REPORT.pdf) · [Word](docs/demo/AUDIT_REPORT.docx) · [Markdown](docs/demo/AUDIT_REPORT.md)
+
+## At a glance
+
+| | |
+|---|---|
+| **Problem** | A pharmaceutical commercial team has a 480-item catalogue of approved educational content and 20,000 prescribers. Every week it has to choose what each prescriber gets next, whether it goes by email, SMS or a rep visit (a fixed headcount), and what the message says, and the message may only quote claims medical-legal review approved. Expired claims read almost exactly like current ones. |
+| **Approach** | Three separate decisions, each with its own ground truth: a small BERT4Rec scored over the full catalogue against popularity, item-kNN and a last-item Markov chain; a calibrated gradient-boosted channel model feeding a rep-budgeted policy; and claim governance enforced in the retrieval index (approved claims only, filtered by brand) before a local LLM writes the message and a check matches every number against the retrieved claims. |
+| **Result** | At the historical rep budget the channel policy reaches **206.6 engaged per 1,000 touches against 189.8 logged (+8.9%)**, **62% of the oracle's lift**. The approved, brand-filtered index puts **0 unapproved claims** in front of the model, against **73.4% of queries** when every claim is indexed (precision@3 0.954). The request path without the LLM runs at **20.4 ms p50**. |
+| **What didn't win** | BERT4Rec loses to the last-item Markov chain (NDCG@10 **0.303 vs 0.316**); it only wins on resuming a series (+0.086). The GBM is 0.007 AUC better than a logistic regression and isotonic recalibration bought almost nothing. All three llama3.2 drafts passed the number check, and two still made claims nothing supports. |
+
+## Architecture
+
+![Architecture walkthrough: seeded tables, the three models, the request path and the evaluation that scores each decision](docs/demo/architecture.gif)
+
+```mermaid
+flowchart LR
+    subgraph SRC["Sources"]
+        GEN["Seeded generator<br/>scripts/generate_data.py<br/>datagen.py"]
+        CUST[("customers.csv<br/>20k prescribers, opt-ins")]
+        ITEMS[("items.csv<br/>480 items, 10 brands")]
+        INTER[("interactions.csv.gz<br/>626k reads")]
+        SENDS[("sends.csv.gz<br/>300k logged sends")]
+        SNIP[("snippets.csv<br/>489 claims: approved, expired, draft")]
+        TRUTH[("truth/<br/>eval only, no model reads it")]
+    end
+
+    subgraph FEAT["Data and features"]
+        LOAD["Loader + scanner filter<br/>data.load · data.drop_scanners"]
+        SPLIT["Leave-last-out split<br/>data.make_split"]
+        TSPLIT["Time split 70/10/20<br/>channel.time_split"]
+        FB["Point-in-time features<br/>channel.FeatureBuilder"]
+        IDX["Approved-only claim index<br/>TF-IDF + SVD, brand filter<br/>rag.SnippetIndex"]
+    end
+
+    subgraph MOD["Models"]
+        B4R["BERT4Rec, 2 layers, 64-d<br/>bert4rec.py"]
+        BASE["Popularity · item-kNN · Markov<br/>baselines.py"]
+        GBM["GBM + isotonic<br/>channel.ChannelModel"]
+        LLM["Drafter: llama3.2 or stub<br/>rag.OllamaLLM · rag.StubLLM"]
+    end
+
+    subgraph DEC["Decision"]
+        ELIG["Channel eligibility<br/>channel.eligible_channels"]
+        REQ["Request path<br/>serve.Recommender"]
+        POL["Rep-budgeted batch policy<br/>channel.assign_with_rep_budget"]
+        GRD["Number grounding check<br/>rag.grounding_check"]
+    end
+
+    subgraph EVAL["Evaluation and monitoring"]
+        REV["Full-catalogue ranking eval<br/>ranking.run · metrics.py"]
+        CEV["Calibration + policy eval<br/>channel.run"]
+        XEV["Retrieval eval, three arms<br/>rag.retrieval_eval"]
+        LAT["Per-stage latency<br/>serve.latency_table"]
+    end
+
+    subgraph OUT["Outputs"]
+        CLI["Orchestrator<br/>cli.py"]
+        RES[("outputs/<br/>summary.json · *.csv · run_log.txt")]
+        DRF[("outputs/drafts_*.md")]
+    end
+
+    GEN --> CUST & ITEMS & INTER & SENDS & SNIP & TRUTH
+    CUST --> LOAD
+    ITEMS --> LOAD
+    INTER -->|"reads"| LOAD
+    SENDS -->|"logged sends"| LOAD
+    SNIP --> LOAD
+    LOAD -.->|"data/ missing: regenerate from seed"| GEN
+    LOAD -->|"40 scanner accounts dropped"| SPLIT
+    SPLIT -->|"sequences minus last two"| B4R
+    SPLIT -->|"sequences minus last two"| BASE
+    SPLIT -.->|"2nd-to-last item: early stop, keep best epoch"| B4R
+    LOAD -->|"sends by day"| TSPLIT
+    TSPLIT -->|"70% train"| FB
+    FB -->|"17 features per customer x item x channel"| GBM
+    TSPLIT -.->|"next 10% refits isotonic"| GBM
+    LOAD -->|"status == approved only"| IDX
+    B4R -->|"top-10 unseen items"| REQ
+    GBM -->|"p(engage) for email, SMS, rep"| REQ
+    ELIG -->|"opt-ins, rep coverage"| REQ
+    ELIG -.->|"no channel allowed: transactional email"| REQ
+    GBM -->|"p(engage) per touch"| POL
+    ELIG --> POL
+    REQ -->|"title + brand of top item"| IDX
+    IDX -->|"top-3 same-brand claims"| LLM
+    LLM -->|"draft text"| GRD
+    IDX -->|"retrieved claims"| GRD
+    GRD -.->|"ungrounded numbers flagged FAIL"| DRF
+    GRD -->|"grounded drafts"| DRF
+    B4R --> REV
+    BASE --> REV
+    TRUTH -.->|"step labels, slicing only"| REV
+    GBM --> CEV
+    POL -->|"channel per touch"| CEV
+    TRUTH -.->|"true engagement p, policy scoring"| CEV
+    SNIP -->|"every status, ground truth by construction"| XEV
+    REQ -->|"ms per stage"| LAT
+    CLI -->|"writes every table and log"| RES
+    REV --> RES
+    CEV --> RES
+    XEV --> RES
+    LAT --> RES
+
+    classDef data fill:#7fa8ff,stroke:#3d6fd9,color:#0b1020
+    classDef model fill:#b9a2ff,stroke:#7a5fd6,color:#0b1020
+    classDef decision fill:#3fd8a8,stroke:#1f9c76,color:#0b1020
+    classDef evaluation fill:#f2c46d,stroke:#b8902f,color:#0b1020
+    classDef risk fill:#ff8a73,stroke:#cc5640,color:#0b1020
+
+    class GEN,CUST,ITEMS,INTER,SENDS,SNIP,LOAD,SPLIT,TSPLIT,FB,CLI,RES,DRF data
+    class B4R,BASE,GBM,LLM model
+    class ELIG,REQ,POL decision
+    class REV,CEV,XEV,LAT,TRUTH evaluation
+    class IDX,GRD risk
+```
+
+Solid edges are the data flow of one run; dotted edges are fallback, feedback and evaluation-only
+paths. Red nodes are where claim governance is enforced: what the model can see, and what its
+output is checked against.
+
+### Components
+
+| Component | Responsibility | File |
+|---|---|---|
+| Data generator | Five tables over two years (prescribers, catalogue, reads, logged sends, claim snippets) plus a `truth/` folder used only to slice results and score channel policies | [`scripts/generate_data.py`](scripts/generate_data.py), [`src/genai_recommender/datagen.py`](src/genai_recommender/datagen.py) |
+| Loader and split | Reads the tables, drops link-scanner accounts (more than 40 reads in a day), builds the leave-last-out split | [`src/genai_recommender/data.py`](src/genai_recommender/data.py) |
+| Baselines | Popularity, item-kNN and a first-order last-item Markov chain | [`src/genai_recommender/baselines.py`](src/genai_recommender/baselines.py) |
+| Sequence model | BERT4Rec with random and last-position-only masking, early stopping on validation NDCG@10, scoring over the full catalogue | [`src/genai_recommender/bert4rec.py`](src/genai_recommender/bert4rec.py) |
+| Ranking evaluation | Trains every ranker on the same split, scores HR, NDCG and coverage at 10, slices by step type and new content | [`src/genai_recommender/ranking.py`](src/genai_recommender/ranking.py), [`src/genai_recommender/metrics.py`](src/genai_recommender/metrics.py) |
+| Channel model and policy | Point-in-time features, GBM with isotonic recalibration, logistic baseline, eligibility, rep-budgeted assignment, policy scoring | [`src/genai_recommender/channel.py`](src/genai_recommender/channel.py) |
+| Claim retrieval and drafting | Approved-only index with brand filter, retrieval experiment, prompt, stub and Ollama clients, grounding check | [`src/genai_recommender/rag.py`](src/genai_recommender/rag.py) |
+| Request path | One prescriber in, top item, channel and checked draft out, with each stage timed | [`src/genai_recommender/serve.py`](src/genai_recommender/serve.py) |
+| Orchestrator | One command end to end; writes every table, log and draft to `outputs/` | [`src/genai_recommender/cli.py`](src/genai_recommender/cli.py) |
+
+### Design decisions
+
+| Decision | Options considered | Chosen | Trade-off |
+|---|---|---|---|
+| Where claim governance lives | An instruction in the prompt ("do not use expired claims"); filtering after generation; filtering the index | Only approved claims are indexed, retrieval is filtered by brand before ranking, and every number in a draft is checked against the retrieved claims ([ADR-0001](docs/adr/0001-governance-in-the-index-not-the-prompt.md)) | The model never sees a wrong claim, but the number check is all that stands between it and an unsupported sentence; prose-level errors still pass |
+| One model or three | One joint model for content, channel and message; three decisions with separate ground truth | Three, each with its own scoreboard | Each result is measurable on its own, but the channel model never asks whether a different item would have engaged better through the chosen channel |
+| How rep visits are allocated | Unconstrained argmax; email unless opted out; a fixed rep budget given to the widest predicted rep advantage | Rep budget equal to the historical share, spent on the largest predicted gain over the best digital channel | A plan a field team can run; it only applies in the batch, so the single-request path takes the eligible argmax |
+| Next-content ranker | Popularity; item-kNN; last-item Markov; BERT4Rec; sampled-negative evaluation against full-catalogue scoring | BERT4Rec on the request path, every ranker scored over all 480 items with no sampled negatives | Honest numbers, and they show the Markov chain winning overall; BERT4Rec is kept for its long-range wins and a blend is the next experiment |
+| Claim embeddings | Hosted embedding model; FAISS; TF-IDF + truncated SVD with cosine in numpy | TF-IDF + SVD, 64-d, in numpy | No download or key, so CI is hermetic; lexical, and it needs revisiting at tens of thousands of claims |
+| Language model | Hosted LLM; local llama3.2 through Ollama; deterministic stub | llama3.2 for demos, the stub in tests and CI | No key and a reproducible test suite; 5.6 to 6.6 s per draft on CPU, which sets the latency budget |
+
+### Data contracts
+
+| Stage | Input | Output |
+|---|---|---|
+| Generator to loader | scale (customers), seed | `customers.csv`: `customer_id, specialty, region, years_in_practice` (float), `digital_affinity` (float), `rep_covered, email_opt_in, sms_opt_in` (bool); `items.csv`: `item_id, title, therapeutic_area, brand, topic, format, series_id, episode` (int), `release_date`; `interactions.csv.gz`: `customer_id, item_id, ts` (datetime), `channel, dwell_seconds` (float); `sends.csv.gz`: `send_id, customer_id, item_id, sent_at` (datetime), `channel` (email, sms, rep), `recent_touches` (int), `engaged` (0/1); `snippets.csv`: `snippet_id, brand, topic, therapeutic_area, kind, status` (approved, expired, draft), `text` |
+| Split | interactions after the scanner filter | `Split`: `customer_ids`, `train: list[ndarray]` of item ids (all but the last two), `valid_target`, `test_history`, `test_target`, `test_ts`, `n_items` |
+| Rankers | item-id histories | `ndarray[n_users, n_items + 1]` scores; seen items masked before top-10 |
+| Channel model | rows `customer_id, item_id, day, channel, recent_touches` | 17 features (5 categorical, 12 numeric, history looked up strictly before `day`) to `p(engage)` in [0, 1] per row |
+| Batch policy | `p` and eligibility, both `[n_touches, 3]`, rep budget (int) | channel index per touch |
+| Retrieval | query text (content title), `k = 3`, brand | up to `k` snippet rows with `score` (cosine); fewer when the brand has fewer approved claims |
+| Drafter | specialty, item row, channel | `snippet_ids, draft, numbers` (int), `ungrounded` (list of str), `grounded` (bool) |
+| Request path | `customer_id`, history, day, recent touches | `Recommendation`: `top10, item_id, channel, channel_p` (dict), `draft`, `ms` per stage |
+
+### Failure modes and fallbacks
+
+| Failure | What the code does |
+|---|---|
+| Dataset missing | If `data/interactions.csv.gz` is absent, the run regenerates every table from the seed before training. There is no live feed, so there is no late-data path. |
+| Link-scanner bursts in the read log | Any prescriber with more than 40 reads in one day is dropped entirely (40 in the full run), because the rest of a scanned inbox is not trustworthy as preference either. |
+| Prescriber with little or no history | Prescribers with fewer than three reads are left out of the split. In the channel model, engagement history is smoothed toward the training base rate with a pseudo-count of 5, so a prescriber with no sends gets the base rate, and a missing region becomes its own `unknown` category. Cold-start ranking is not evaluated. |
+| No channel allowed for a prescriber | Eligibility falls back to transactional email, which is always allowed. |
+| Category at request time not seen in training | Categorical features are mapped onto the training category codes; an unseen value becomes missing, which the GBM handles natively. |
+| BERT4Rec stops improving | Training is evaluated every two epochs on the second-to-last item for 3,000 prescribers; after three evaluations without improvement it stops and restores the best checkpoint. |
+| Retrieval finds fewer than three claims for a brand | Only same-brand rows are returned, even if that is fewer than `k`; the draft may then only quote numbers in those claims or the content title. |
+| Draft contains a number no retrieved claim supports | The grounding check lists it and the draft is written to `outputs/drafts_*.md` marked FAIL. There is no regeneration and no send step. Wrong prose around correct numbers is not caught; this is the biggest gap in the limitations below. |
+| LLM slow or down | `OllamaLLM` gives each draft a 300 s timeout with no retry or template fallback, so a failure ends the `--llm ollama` demo run. The default run, the tests and CI use the stub and never call a model server. |
+| Model or data drift | Not handled. Every model is retrained on each run and nothing is monitored; listed in the limitations below. |
+| `truth/` folder missing | Slice tables and the policy comparison are skipped; ranking, calibration and retrieval still run. |
+
+### Path to production
+
+This is a mapping of each local piece to what would replace it in a deployed system, not a
+description of one that exists.
+
+| Here | Production equivalent |
+|---|---|
+| Seeded generator writing CSVs to `data/` | CRM call logs, email and SMS provider events and content analytics landed in a warehouse (BigQuery, Snowflake or Redshift), partitioned by event date |
+| pandas loader, scanner filter and point-in-time history lookups | SQL or dbt models, and a feature store (Feast, Vertex AI or SageMaker Feature Store) with point-in-time joins so the training and request paths share one definition |
+| `make run` on a laptop | Scheduled pipeline in Airflow or Step Functions: weekly retrain of the ranker and channel model, evaluation against the incumbent on the latest held-out week, promotion only if it wins |
+| BERT4Rec and GBM trained in process on CPU | Training jobs on SageMaker or Vertex AI, versioned in a model registry (MLflow or the cloud registry) |
+| In-process `Recommender` | A container service (Cloud Run, ECS or Kubernetes) or a managed endpoint, with channel features precomputed per prescriber, since the pandas feature frame is where the non-LLM latency is |
+| TF-IDF + SVD index in numpy | Neural embeddings in a vector store with metadata filters (pgvector or OpenSearch), filtering on `status` and `brand` before ranking, rebuilt on every medical-legal approval or expiry |
+| llama3.2 through Ollama | Managed LLM endpoint (Bedrock or Vertex AI) or self-hosted vLLM, with a timeout, retries and a fixed template as fallback |
+| Number grounding check | Claim-level entailment check per sentence, then a human approval queue before anything is sent |
+| Policy scored against the generator's engagement function | Off-policy estimation on logged propensities, confirmed by a randomised holdout |
+| Monitoring (not built) | Weekly NDCG@10 on last-event holdout against the Markov baseline; ECE per channel; rep share against budget; unapproved-claim retrieval rate as a hard alert at anything above 0; grounding failure rate; p95 latency per stage and LLM timeouts |
+
 ## The problem
 
 A pharmaceutical commercial team has about 500 pieces of approved educational content (articles,
