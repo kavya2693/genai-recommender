@@ -1,0 +1,487 @@
+# Audit facts for the genai-recommender demo video.
+# Read by docs/demo/source/tools/build_audit_report.py.
+#
+# Check expressions are Python, evaluated with these helpers (paths relative to the repo root;
+# a "demo:" prefix means relative to the demo project folder):
+#   R(path) -> pandas DataFrame from CSV      J(path) -> parsed JSON
+#   row(path, **eq) -> the single CSV row matching all equalities (a pandas Series)
+#   T(path) -> file text                      grep(path, regex) -> True/False
+# A check passes when fmt.format(value) == expect (or, with fmt "bool", when value is True).
+
+project:
+  name: genai-recommender
+  title: "genai-recommender: demo video audit report"
+  repo_url: https://github.com/kavya2693/genai-recommender
+  repo_dir: ../../../..          # paths are relative to this file
+  demo_dir: ..
+  demo_display: docs/demo/source
+  out_dir: ../..
+  video: docs/demo/demo.mp4
+  video_duration_s: 85.8
+  outputs_dir: outputs
+  venv_python: .venv/bin/python
+  version_packages: [torch, sklearn, pandas, numpy]
+  regenerate:
+    - "make demo                                  # outputs/*.csv, summary.json, bert4rec_training.json, drafts_llama3.2.md (~4 min; needs ollama pull llama3.2)"
+    - "PYTHONPATH=src .venv/bin/python docs/demo/source/tools/export_outreach_plan.py docs/demo/source/assets/outreach_plan.json --region north   # ~6 min, retrains with seed 7"
+    - "python3 docs/demo/source/tools/inject_sheet.py docs/demo/source/assets/outreach_plan.json docs/demo/source/compositions/value.html --rows 0,1,2,9,15,66"
+    - "cd docs/demo/source && npx --yes hyperframes@0.8.156 check && npx --yes hyperframes@0.8.156 render -f 30 -q looks -o renders/genai-recommender-master.mp4 && cd -"
+    - "ffmpeg -y -i docs/demo/source/renders/genai-recommender-master.mp4 -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p -movflags +faststart -an docs/demo/demo.mp4"
+    - "python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/facts.yaml --master docs/demo/source/renders/genai-recommender-master.mp4   # stills, checks, MD/DOCX/PDF"
+  seeds: {data_generator: 7, bert4rec: 7, latency_sample_rng: 1, validation_users_rng: 0}
+  run_time: "summary.json wall_seconds = 233.4 s for make demo (README: Apple M1 Pro laptop, 4 threads, no GPU, including three llama3.2 drafts); the slide 07 export took 351.9 s"
+
+assumptions:
+  - id: A-01
+    statement: "All data is synthetic, produced by a seeded generator sized to the production problem (20,000 prescribers, 480 items, two years, 489 claim snippets). Brand names are invented; the production data is proprietary."
+    source: "src/genai_recommender/datagen.py:70-76 (Scale), :455 (seed=7), :66 (DAYS = 730); README 'The data'"
+    figures: [F-03]
+    all_figures: true
+    edit: ["src/genai_recommender/datagen.py (Scale)"]
+    rerun: ["make data", "make demo"]
+  - id: A-02
+    statement: "Channel policies are scored with the generator's true engagement probability for the channel each policy picks, on the same test touches (last 20% of sends by time). Real logs would need off-policy estimation or a randomised holdout."
+    source: "src/genai_recommender/channel.py:267-321 (_policy_eval), :163-169 (time_split 70/10/20); README 'Known limitations'"
+    figures: [F-50, F-51, F-52, F-54, F-57]
+    edit: ["src/genai_recommender/channel.py"]
+    rerun: ["make demo"]
+  - id: A-03
+    statement: "Rep visits are a fixed budget equal to the logged (historical) number of rep sends in the test window (13.3% of touches); visits go to the touches where a rep beats the best eligible digital channel by the widest predicted margin. The slide 07 export applies the same share to one region."
+    source: "src/genai_recommender/channel.py:187-212 (assign_with_rep_budget), :297 (rep_budget); demo tools/export_outreach_plan.py (rep_share)"
+    figures: [F-45, F-50, F-51, F-60]
+    edit: ["src/genai_recommender/channel.py:297", "tools/export_outreach_plan.py"]
+    rerun: ["make demo", "export_outreach_plan.py + inject_sheet.py"]
+  - id: A-04
+    statement: "Latency is measured on one laptop, 300 requests one at a time, one thread, stub drafter, no server or network hop; p50/p95 vary with machine load."
+    source: "src/genai_recommender/cli.py:115-140 (request loop, threadpool_limits(limits=1), --latency-n 300); README 'Latency of the request path'"
+    figures: [F-17, F-18, F-19, F-20, F-29, F-55, F-56, F-58]
+    edit: ["src/genai_recommender/cli.py:71"]
+    rerun: ["make demo"]
+  - id: A-05
+    statement: "The llama3.2 result is three demonstration drafts (3B model, CPU through Ollama, temperature 0.2), not a measured pass rate."
+    source: "src/genai_recommender/rag.py:122-138 (OllamaLLM); cli.py:70 (--demo-n 3); README 'Latency of the request path'"
+    figures: [F-28, F-29, F-30, F-40, F-42, F-43, F-70]
+    edit: ["Makefile (demo target)", "src/genai_recommender/rag.py:130"]
+    rerun: ["make demo"]
+  - id: A-06
+    statement: "The grounding check only checks numbers: every number in a draft must appear in a retrieved approved claim or the content title. Prose that misstates a claim passes (README 'Known limitations', biggest gap)."
+    source: "src/genai_recommender/rag.py:163-174 (grounding_check)"
+    figures: [F-10, F-14, F-42, F-43, F-46]
+    edit: ["src/genai_recommender/rag.py:163-174"]
+    rerun: ["make demo"]
+  - id: A-07
+    statement: "Claim retrieval is scored on 79 brand-topic queries with k = 3; the right claims are known by construction (approved snippets written for that brand and topic)."
+    source: "src/genai_recommender/rag.py:64-104 (retrieval_eval), :53 (k = 3)"
+    figures: [F-13, F-15, F-16, F-53]
+    edit: ["src/genai_recommender/rag.py"]
+    rerun: ["make demo"]
+  - id: A-08
+    statement: "Ranking uses a leave-last-out split (train on all but the last two reads, validate on the second-to-last, test on the last) after dropping prescribers with more than 40 reads in a day (link scanners). All rankers are scored over the full 480-item catalogue with seen items masked."
+    source: "src/genai_recommender/data.py:12 (MAX_EVENTS_PER_DAY = 40), :62-84 (make_split); ranking.py:50-54"
+    figures: [F-22, F-27, F-39, F-61, F-62, F-63, F-64, F-65, F-66]
+    edit: ["src/genai_recommender/data.py"]
+    rerun: ["make demo"]
+  - id: A-09
+    statement: "BERT4Rec configuration: 2 layers, 64 dimensions, 2 heads, 30-item window, up to 30 epochs evaluated every 2, early stop with patience 3 on validation NDCG@10 over 3,000 sampled prescribers, seed 7."
+    source: "src/genai_recommender/bert4rec.py:19-35 (Config); ranking.py:62 (valid_users = 3000)"
+    figures: [F-25, F-33, F-34, F-35, F-36, F-38]
+    edit: ["src/genai_recommender/bert4rec.py:19-35"]
+    rerun: ["make demo", "export_outreach_plan.py + inject_sheet.py"]
+  - id: A-10
+    statement: "Slide 07 plans one touch for every prescriber in the north region at the same point in time the request-path test uses (history before the held-out read), with the deterministic stub drafter. The export retrains every model with the repo's seeds; its ranking table reproduces outputs/ranking.csv exactly."
+    source: "demo tools/export_outreach_plan.py; src/genai_recommender/cli.py:115-130 (request)"
+    figures: [F-44, F-45, F-46, F-47, F-48, F-49]
+    edit: ["tools/export_outreach_plan.py (--region)", "tools/inject_sheet.py (--rows)"]
+    rerun: ["export_outreach_plan.py + inject_sheet.py", "hyperframes render"]
+  - id: A-11
+    statement: "Run times depend on the machine: the README run is an Apple M1 Pro laptop on 4 CPU threads, no GPU."
+    source: "README 'The result' line 57; outputs/summary.json wall_seconds, bert4rec.train_seconds"
+    figures: [F-36, F-37, F-71]
+    edit: ["-"]
+    rerun: ["make demo"]
+  - id: A-12
+    statement: "Video rounding: probabilities and NDCG to 3 decimals (2 on the slide 07 sheet), shares to 1 decimal or whole percent, latencies to 2 decimals (1 on slide 08), counts with thousands separators; '626k', '300k', '133k', '~4 min' are rounded labels."
+    source: "this audit (display convention)"
+    figures: [F-13, F-21, F-25, F-28, F-29, F-47, F-50, F-52, F-55, F-56, F-71]
+    edit: ["the composition file named on each slide"]
+    rerun: ["hyperframes render"]
+  - id: A-13
+    statement: "Slide 01 (industry, everyday problems) is general pharma-commercial knowledge used as context, backed by the README problem statement; it carries no numbers."
+    source: "author's framing; README 'The problem'"
+    figures: [F-01, F-02]
+    edit: ["compositions/s01-context.html"]
+    rerun: ["hyperframes render"]
+
+figures:
+  # ---- slide 01
+  - {id: F-01, slides: ["01"], label: "Who relates: pharma & biotech brand teams, field sales & omnichannel ops, medical-legal review", shown: "3 chips", type: general-knowledge, source: "author's framing", key: "-", formula: "-", manual: "Context statement, not a repo output."}
+  - {id: F-02, slides: ["01"], label: "Four everyday problems (same content per segment; channel by habit with scarce reps; approved claims only; old and new claims read alike)", shown: "4 problem cards", type: general-knowledge, source: "README 'The problem'", key: "README lines 13-27", formula: "-",
+     check: {expr: "all(grep('README.md', p) for p in [r'segment rule and a template', r'fixed headcount', r'compliance incident', r'read almost identically'])", fmt: bool}}
+  # ---- slide 02
+  - {id: F-03, slides: ["02"], label: "Prescribers in the dataset", shown: "20,000 prescribers", type: direct, source: "data/customers.csv", key: "row count", formula: "-",
+     check: {expr: "len(R('data/customers.csv'))", fmt: "{:,d}", expect: "20,000"}}
+  - {id: F-04, slides: ["02", "05", "09"], label: "Content items in the catalogue", shown: "480 pieces of content / top-10 of 480 / 480-item catalogue", type: direct, source: "data/items.csv", key: "row count", formula: "-",
+     check: {expr: "len(R('data/items.csv'))", fmt: "{:d}", expect: "480"}}
+  - {id: F-05, slides: ["02", "03"], label: "Three channels: email, SMS, rep visit", shown: "Email, SMS or a rep visit?", type: direct, source: "src/genai_recommender/datagen.py:62", key: "CHANNELS", formula: "-",
+     check: {expr: "grep('src/genai_recommender/datagen.py', r'CHANNELS = \\[\"email\", \"sms\", \"rep\"\\]')", fmt: bool}}
+  - {id: F-06, slides: ["02"], label: "Content interactions (reads)", shown: "626,414 reads", type: direct, source: "data/interactions.csv.gz", key: "row count", formula: "-",
+     check: {expr: "len(R('data/interactions.csv.gz'))", fmt: "{:,d}", expect: "626,414"}}
+  - {id: F-07, slides: ["02", "05"], label: "Data spans two years", shown: "over 2 years / 2 yrs", type: direct, source: "src/genai_recommender/datagen.py:65-66; data/interactions.csv.gz ts", key: "DAYS = 730; first and last read 2024-09-01 .. 2026-08-31", formula: "span = 729 days + 1",
+     check: {expr: "grep('src/genai_recommender/datagen.py', r'^DAYS = 730') and (lambda s: (pd.to_datetime(s.max()) - pd.to_datetime(s.min())).days)(R('data/interactions.csv.gz')['ts']) == 729", fmt: bool}}
+  - {id: F-08, slides: ["02"], label: "Logged outbound sends", shown: "299,722 logged sends", type: direct, source: "data/sends.csv.gz", key: "row count", formula: "-",
+     check: {expr: "len(R('data/sends.csv.gz'))", fmt: "{:,d}", expect: "299,722"}}
+  - {id: F-09, slides: ["02"], label: "Expired claim snippets", shown: "252 expired claims look like current ones", type: direct, source: "data/snippets.csv", key: "status == expired", formula: "count",
+     check: {expr: "int((R('data/snippets.csv')['status'] == 'expired').sum())", fmt: "{:d}", expect: "252"}}
+  # ---- slide 03
+  - {id: F-10, slides: ["03"], label: "Message out: approved claims, right brand, numbers checked", shown: "3 green badges", type: derived, source: "outputs/retrieval.csv; outputs/summary.json", key: "arm 'approved only + brand filter': unapproved = 0, other-brand = 0; stub_grounded_share = 1.0; llm_demo grounded 3/3", formula: "-",
+     check: {expr: "(lambda r: r['any unapproved claim retrieved'] == 0 and r['any other-brand claim retrieved'] == 0)(row('outputs/retrieval.csv', arm='approved only + brand filter')) and J('outputs/summary.json')['stub_grounded_share'] == 1.0 and J('outputs/summary.json')['llm_demo']['grounded'] == 3", fmt: bool}}
+  - {id: F-11, slides: ["03"], label: "Next-content model learns reading order (masked-item prediction on sequences)", shown: "learns reading order", type: direct, source: "src/genai_recommender/bert4rec.py:105-130", key: "_training_batch masking", formula: "-",
+     check: {expr: "grep('src/genai_recommender/bert4rec.py', r'last_only_prob') and grep('src/genai_recommender/bert4rec.py', r'mask_prob')", fmt: bool}}
+  # ---- slide 04
+  - {id: F-12, slides: ["04"], label: "Example claims: S19 approved 47%, S22 expired 28%, S23 expired 100 mg (Somnavel, elderly patients)", shown: "S19 APPROVED 47% · S22 EXPIRED 28% · S23 EXPIRED 100 mg", type: direct, source: "data/snippets.csv", key: "snippet_id 19, 22, 23", formula: "-",
+     check: {expr: "(lambda s: s.loc[19, 'status'] == 'approved' and 'by 47%' in s.loc[19, 'text'] and s.loc[22, 'status'] == 'expired' and 'by 28%' in s.loc[22, 'text'] and s.loc[23, 'status'] == 'expired' and '100 mg' in s.loc[23, 'text'] and set(s.loc[[19, 22, 23], 'brand']) == {'Somnavel'} and set(s.loc[[19, 22, 23], 'topic']) == {'elderly patients'})(R('data/snippets.csv').set_index('snippet_id'))", fmt: bool}}
+  - {id: F-13, slides: ["04"], label: "Queries that retrieve an unapproved claim when every status is indexed", shown: "73%", type: direct, source: "outputs/retrieval.csv", key: "arm='all statuses indexed', any unapproved claim retrieved (0.7342)", formula: "x 100, rounded",
+     check: {expr: "row('outputs/retrieval.csv', arm='all statuses indexed')['any unapproved claim retrieved'] * 100", fmt: "{:.0f}%", expect: "73%"}}
+  - {id: F-14, slides: ["04"], label: "The three mechanisms exist in the code (approved-only index, brand filter before ranking, number check)", shown: "3 step statements", type: direct, source: "src/genai_recommender/rag.py:36-37, :57-58, :163", key: "-", formula: "-",
+     check: {expr: "grep('src/genai_recommender/rag.py', r'snippets\\[snippets\\[\"status\"\\] == \"approved\"\\] if approved_only') and grep('src/genai_recommender/rag.py', r'if brand is not None:') and grep('src/genai_recommender/rag.py', r'def grounding_check')", fmt: bool}}
+  - {id: F-15, slides: ["04"], label: "Unapproved claims retrieved by the approved-only, brand-filtered index", shown: "This design → 0%", type: direct, source: "outputs/retrieval.csv", key: "arm='approved only + brand filter', any unapproved claim retrieved", formula: "x 100",
+     check: {expr: "row('outputs/retrieval.csv', arm='approved only + brand filter')['any unapproved claim retrieved'] * 100", fmt: "{:.0f}%", expect: "0%"}}
+  - {id: F-16, slides: ["04", "08"], label: "Number of retrieval test queries", shown: "79 test queries / 79 claim queries", type: direct, source: "outputs/retrieval.csv", key: "queries", formula: "-",
+     check: {expr: "int(row('outputs/retrieval.csv', arm='all statuses indexed')['queries'])", fmt: "{:d}", expect: "79"}}
+  # ---- slide 05
+  - {id: F-17, slides: ["05"], label: "Rank stage p50", shown: "RANK 0.67 ms", type: direct, source: "outputs/latency.csv", key: "stage=rank, p50 ms", formula: "-",
+     check: {expr: "row('outputs/latency.csv', stage='rank')['p50 ms']", fmt: "{:.2f}", expect: "0.67"}}
+  - {id: F-18, slides: ["05"], label: "Channel stage p50", shown: "CHANNEL 18.94 ms", type: direct, source: "outputs/latency.csv", key: "stage=channel, p50 ms", formula: "-",
+     check: {expr: "row('outputs/latency.csv', stage='channel')['p50 ms']", fmt: "{:.2f}", expect: "18.94"}}
+  - {id: F-19, slides: ["05"], label: "Retrieve + draft stage p50 (stub)", shown: "RETRIEVE + DRAFT 0.80 ms", type: direct, source: "outputs/latency.csv", key: "stage=retrieve+draft, p50 ms", formula: "-",
+     check: {expr: "row('outputs/latency.csv', stage='retrieve+draft')['p50 ms']", fmt: "{:.2f}", expect: "0.80"}}
+  - {id: F-20, slides: ["05", "08"], label: "Total request p95 (stub)", shown: "p95 total 23.27 ms / 23.3 ms", type: direct, source: "outputs/latency.csv", key: "stage=total, p95 ms", formula: "-",
+     check: {expr: "row('outputs/latency.csv', stage='total')['p95 ms']", fmt: "{:.2f}", expect: "23.27"}}
+  - {id: F-21, slides: ["05"], label: "data/ store sizes", shown: "626k reads · 300k sends · 489 claims", type: derived, source: "data/interactions.csv.gz, data/sends.csv.gz, data/snippets.csv", key: "row counts 626,414 / 299,722 / 489", formula: "rounded to thousands",
+     check: {expr: "f\"{round(len(R('data/interactions.csv.gz')) / 1000)}k {round(len(R('data/sends.csv.gz')) / 1000)}k {len(R('data/snippets.csv'))}\"", fmt: "{}", expect: "626k 300k 489"}}
+  - {id: F-22, slides: ["05"], label: "Link-scanner prescribers dropped", shown: "−40 link scanners", type: direct, source: "outputs/summary.json", key: "scanners_dropped", formula: "-",
+     check: {expr: "J('outputs/summary.json')['scanners_dropped']", fmt: "{:d}", expect: "40"}}
+  - {id: F-23, slides: ["05"], label: "Approved claims in the index", shown: "226 approved only", type: direct, source: "data/snippets.csv", key: "status == approved", formula: "count",
+     check: {expr: "int((R('data/snippets.csv')['status'] == 'approved').sum())", fmt: "{:d}", expect: "226"}}
+  - {id: F-24, slides: ["05"], label: "Claim index embedding: TF-IDF + SVD, 64 dimensions", shown: "TF-IDF + SVD 64-d", type: direct, source: "src/genai_recommender/rag.py:32-44", key: "SnippetIndex(dim=64)", formula: "-",
+     check: {expr: "grep('src/genai_recommender/rag.py', r'def __init__\\(self, dim: int = 64') and grep('src/genai_recommender/rag.py', r'TruncatedSVD') and grep('src/genai_recommender/rag.py', r'TfidfVectorizer')", fmt: bool}}
+  - {id: F-25, slides: ["05", "06", "09"], label: "BERT4Rec size", shown: "2 layers · 64-d · 133k params", type: direct, source: "outputs/summary.json", key: "bert4rec.config.layers, dim; bert4rec.parameters = 133,345", formula: "parameters rounded to thousands",
+     check: {expr: "(lambda b: f\"{b['config']['layers']} {b['config']['dim']} {round(b['parameters'] / 1000)}k\")(J('outputs/summary.json')['bert4rec'])", fmt: "{}", expect: "2 64 133k"}}
+  - {id: F-26, slides: ["05"], label: "Generator seed and span", shown: "seed 7 · 2 yrs", type: direct, source: "src/genai_recommender/datagen.py:455, :66", key: "seed: int = 7; DAYS = 730", formula: "-",
+     check: {expr: "grep('src/genai_recommender/datagen.py', r'def generate\\(out_dir: Path, scale: Scale \\| None = None, seed: int = 7\\)') and grep('src/genai_recommender/datagen.py', r'^DAYS = 730')", fmt: bool}}
+  - {id: F-27, slides: ["05"], label: "Rank returns top-10 with seen items masked", shown: "top-10 of 480 · seen masked", type: direct, source: "src/genai_recommender/serve.py:60-61", key: "mask_seen, argsort[:10]", formula: "-",
+     check: {expr: "grep('src/genai_recommender/serve.py', r'mask_seen\\(bert4rec.score') and grep('src/genai_recommender/serve.py', r'\\[:10\\]')", fmt: bool}}
+  - {id: F-28, slides: ["05"], label: "llama3.2 draft time range", shown: "5.6–6.6 s / draft", type: derived, source: "outputs/summary.json", key: "llm_demo.draft_ms = [5570, 6178, 6605]", formula: "min, max / 1000",
+     check: {expr: "(lambda d: f\"{min(d) / 1000:.1f}-{max(d) / 1000:.1f}\")(J('outputs/summary.json')['llm_demo']['draft_ms'])", fmt: "{}", expect: "5.6-6.6"}}
+  - {id: F-29, slides: ["05"], label: "LLM draft vs the rest of the request path", shown: "LLM draft ≈ 300× the rest", type: derived, source: "outputs/summary.json; README line 149", key: "mean draft_ms 6,118 / total p50 20.44 ms = 299", formula: "mean(draft_ms) / total p50, rounded to the nearest hundred",
+     check: {expr: "round(sum(J('outputs/summary.json')['llm_demo']['draft_ms']) / 3 / row('outputs/latency.csv', stage='total')['p50 ms'], -2)", fmt: "{:.0f}x", expect: "300x"}, note: "The README states 'roughly 300 times the rest of the request path combined'."}
+  - {id: F-30, slides: ["05"], label: "llama3.2 is a 3B model run on CPU through Ollama; a stub replaces it in tests and CI", shown: "llama3.2 · 3B · Ollama · CPU · stub in tests + CI", type: direct, source: "README line 148; src/genai_recommender/rag.py StubLLM, OllamaLLM", key: "-", formula: "-",
+     check: {expr: "grep('README.md', r'3B, CPU through Ollama') and grep('src/genai_recommender/rag.py', r'class StubLLM') and grep('src/genai_recommender/rag.py', r'class OllamaLLM')", fmt: bool}}
+  - {id: F-31, slides: ["05"], label: "Every architecture box exists in the code", shown: "datagen.py, data.py, channel.py (x3), rag.py (x2), bert4rec.py, serve.py (x2), cli.py, baselines.py", type: direct, source: "src/genai_recommender/", key: "functions and classes", formula: "-",
+     check: {expr: "all(grep('src/genai_recommender/' + f, p) for f, p in [('datagen.py', r'def generate'), ('data.py', r'def drop_scanners'), ('data.py', r'def make_split'), ('channel.py', r'class FeatureBuilder'), ('channel.py', r'class ChannelModel'), ('channel.py', r'def assign_with_rep_budget'), ('channel.py', r'def eligible_channels'), ('rag.py', r'class SnippetIndex'), ('rag.py', r'class Drafter'), ('bert4rec.py', r'class BERT4Rec'), ('serve.py', r'class Recommendation'), ('serve.py', r'def recommend'), ('cli.py', r'def main'), ('baselines.py', r'class LastItemMarkov')])", fmt: bool}}
+  - {id: F-32, slides: ["05"], label: "Send features: 3 rows per request (one per channel), history strictly before the send day", shown: "prior-day history · 3 rows / request", type: direct, source: "src/genai_recommender/serve.py:64-72; channel.py:46-58", key: "-", formula: "-",
+     check: {expr: "grep('src/genai_recommender/serve.py', r'customer_id=\\[customer_id\\] \\* 3') and grep('src/genai_recommender/channel.py', r'allow_exact_matches=False')", fmt: bool}}
+  # ---- slide 06
+  - {id: F-33, slides: ["06"], label: "Training curve points (valid NDCG@10 by epoch) drawn from the training log", shown: "14 points, epochs 2-28", type: direct, source: "outputs/bert4rec_training.json history", key: "epoch, valid_ndcg10", formula: "-",
+     check: {expr: "curve_matches()", fmt: bool}}
+  - {id: F-34, slides: ["06"], label: "Best validation NDCG@10 and epoch", shown: "epoch 22 · 0.303", type: direct, source: "outputs/bert4rec_training.json", key: "best_epoch, best_valid_ndcg10", formula: "-",
+     check: {expr: "(lambda b: f\"{b['best_epoch']} {b['best_valid_ndcg10']:.3f}\")(J('outputs/bert4rec_training.json'))", fmt: "{}", expect: "22 0.303"}}
+  - {id: F-35, slides: ["06"], label: "Training stopped at epoch 28", shown: "stopped at 28", type: direct, source: "outputs/bert4rec_training.json", key: "last history epoch", formula: "-",
+     check: {expr: "J('outputs/bert4rec_training.json')['history'][-1]['epoch']", fmt: "{:d}", expect: "28"}}
+  - {id: F-36, slides: ["06"], label: "Training time", shown: "196 s", type: direct, source: "outputs/summary.json", key: "bert4rec.train_seconds", formula: "-",
+     check: {expr: "J('outputs/summary.json')['bert4rec']['train_seconds']", fmt: "{:.0f} s", expect: "196 s"}}
+  - {id: F-37, slides: ["06"], label: "Training conditions", shown: "4 CPU threads, no GPU", type: direct, source: "README line 57; cli.py --threads default min(4, cpu_count)", key: "-", formula: "-",
+     check: {expr: "grep('README.md', r'4 threads, no GPU') and grep('src/genai_recommender/cli.py', r'default=min\\(4, os.cpu_count\\(\\) or 1\\)')", fmt: bool}}
+  - {id: F-38, slides: ["06"], label: "Parameter count", shown: "133,345", type: direct, source: "outputs/summary.json", key: "bert4rec.parameters", formula: "-",
+     check: {expr: "J('outputs/summary.json')['bert4rec']['parameters']", fmt: "{:,d}", expect: "133,345"}}
+  - {id: F-39, slides: ["06", "08", "09"], label: "Training events and prescribers after cleaning", shown: "576,746 training events · 19,960 prescribers", type: direct, source: "outputs/summary.json", key: "split.train_events, split.users", formula: "-",
+     check: {expr: "(lambda s: f\"{s['train_events']:,} {s['users']:,}\")(J('outputs/summary.json')['split'])", fmt: "{}", expect: "576,746 19,960"}}
+  - {id: F-40, slides: ["06"], label: "Request trace: prescriber 2651, top item, channel probabilities, claims, latency", shown: "Prescriber 2651 · Somnavel elderly patients series, part 5 · email 0.194 / SMS 0.114 / rep 0.416 · S21 S20 S19 · 6,605 ms", type: direct, source: "outputs/drafts_llama3.2.md lines 44-49", key: "Customer 2651 section", formula: "-",
+     check: {expr: "all(grep('outputs/drafts_llama3.2.md', p) for p in [r'^## Customer 2651: Somnavel elderly patients series, part 5 via email', r'^Channel probabilities: email 0.194, sms 0.114, rep 0.416', r'^Retrieved snippets: \\[21, 20, 19\\]', r'^Draft latency: 6605 ms'])", fmt: bool}}
+  - {id: F-41, slides: ["06"], label: "Prescriber 2651 is neurology, not rep-covered (so rep is not eligible)", shown: "neurology · no rep coverage · rep 0.416 not eligible", type: direct, source: "data/customers.csv", key: "customer_id 2651", formula: "-",
+     check: {expr: "(lambda c: c['specialty'] == 'neurology' and not bool(c['rep_covered']))(row('data/customers.csv', customer_id=2651))", fmt: bool}}
+  - {id: F-42, slides: ["06"], label: "Draft excerpt and claim check: the shown lines are verbatim and all 8 numbers appear in S19-S21 or the title", shown: "claim check: pass · all 8 numbers in S19–S21 or the title", type: derived, source: "outputs/drafts_llama3.2.md; data/snippets.csv; rag.py grounding_check logic", key: "-", formula: "numbers in draft (regex \\d+(\\.\\d+)?) all in claims + title",
+     check: {expr: "draft_2651_ok()", fmt: bool}}
+  - {id: F-43, slides: ["06"], label: "All three llama3.2 demo drafts pass the number check", shown: "3 of 3 drafts pass", type: direct, source: "outputs/summary.json", key: "llm_demo.samples, grounded", formula: "-",
+     check: {expr: "(lambda d: f\"{d['grounded']} of {d['samples']}\")(J('outputs/summary.json')['llm_demo'])", fmt: "{}", expect: "3 of 3"}}
+  # ---- slide 07
+  - {id: F-44, slides: ["07"], label: "Prescribers planned (north region)", shown: "3,275 prescribers / 3,275 planned", type: direct, source: "demo assets/outreach_plan.json", key: "prescribers", formula: "-",
+     check: {expr: "J('demo:assets/outreach_plan.json')['prescribers']", fmt: "{:,d}", expect: "3,275"}}
+  - {id: F-45, slides: ["07"], label: "Rep visits in the plan, within the budget", shown: "395 rep visits, within budget", type: direct, source: "demo assets/outreach_plan.json", key: "channels.rep = 395, rep_budget = 435", formula: "395 <= 435",
+     check: {expr: "(lambda d: d['channels']['rep'] == 395 and d['channels']['rep'] <= d['rep_budget'])(J('demo:assets/outreach_plan.json'))", fmt: bool}}
+  - {id: F-46, slides: ["07"], label: "Every planned draft passes the claim check (stub drafter)", shown: "every draft passes the claim check", type: direct, source: "demo assets/outreach_plan.json", key: "grounded == prescribers", formula: "3,275 / 3,275",
+     check: {expr: "(lambda d: d['grounded'] == d['prescribers'] and all(r['grounded'] for r in d['rows']))(J('demo:assets/outreach_plan.json'))", fmt: bool}}
+  - {id: F-47, slides: ["07"], label: "Six sheet rows (HCP position, specialty, next content, channel, probability, claims, check)", shown: "HCP-0001, -0002, -0003, -0010, -0016, -0067", type: direct, source: "demo assets/outreach_plan.json, injected into compositions/value.html", key: "rows 0, 1, 2, 9, 15, 66", formula: "HCP id = row position + 1",
+     check: {expr: "sheet_rows_match()", fmt: bool}}
+  - {id: F-48, slides: ["07"], label: "Prescribers not shown on the sheet", shown: "+ 3,269 more prescribers", type: derived, source: "F-44", key: "3,275 - 6", formula: "-",
+     check: {expr: "J('demo:assets/outreach_plan.json')['prescribers'] - 6", fmt: "{:,d}", expect: "3,269"}}
+  - {id: F-49, slides: ["07"], label: "The export reproduces the repo's ranking results (same models as make demo)", shown: "(supports every slide 07 row)", type: direct, source: "demo assets/outreach_plan.json ranking_check vs outputs/ranking.csv", key: "HR@10, NDCG@10, coverage@10 per model", formula: "equal at 4 decimals",
+     check: {expr: "all(abs(a[k] - b[k]) < 1e-4 for a, b in zip(J('demo:assets/outreach_plan.json')['ranking_check'], J('outputs/summary.json')['ranking']) for k in ('HR@10', 'NDCG@10', 'coverage@10'))", fmt: bool}}
+  # ---- slide 08
+  - {id: F-50, slides: ["08"], label: "Engagement lift of the model policy over the logged policy, same rep budget", shown: "+8.9%", type: derived, source: "outputs/channel_policy.csv", key: "engaged per 1k touches: model 206.64 vs logged 189.77", formula: "(206.64 / 189.77 - 1) x 100 = 8.89%",
+     check: {expr: "(row('outputs/channel_policy.csv', policy='model, same rep budget')['engaged per 1k touches'] / row('outputs/channel_policy.csv', policy='logged (historical) policy')['engaged per 1k touches'] - 1) * 100", fmt: "{:+.1f}%", expect: "+8.9%"}}
+  - {id: F-51, slides: ["08"], label: "Engaged per 1,000 touches, logged → model", shown: "189.8 → 206.6 per 1,000", type: direct, source: "outputs/channel_policy.csv", key: "engaged per 1k touches", formula: "-",
+     check: {expr: "f\"{row('outputs/channel_policy.csv', policy='logged (historical) policy')['engaged per 1k touches']:.1f} -> {row('outputs/channel_policy.csv', policy='model, same rep budget')['engaged per 1k touches']:.1f}\"", fmt: "{}", expect: "189.8 -> 206.6"}}
+  - {id: F-52, slides: ["08"], label: "Share of the oracle's lift recovered", shown: "62%", type: direct, source: "outputs/channel_policy.csv", key: "policy='model, same rep budget', share of oracle lift (0.6173)", formula: "x 100",
+     check: {expr: "row('outputs/channel_policy.csv', policy='model, same rep budget')['share of oracle lift'] * 100", fmt: "{:.0f}%", expect: "62%"}}
+  - {id: F-53, slides: ["08"], label: "Unapproved claims retrieved: approved + brand filter vs index everything", shown: "0.0% (index everything: 73.4%)", type: direct, source: "outputs/retrieval.csv", key: "any unapproved claim retrieved", formula: "x 100",
+     check: {expr: "f\"{row('outputs/retrieval.csv', arm='approved only + brand filter')['any unapproved claim retrieved'] * 100:.1f}% {row('outputs/retrieval.csv', arm='all statuses indexed')['any unapproved claim retrieved'] * 100:.1f}%\"", fmt: "{}", expect: "0.0% 73.4%"}}
+  - {id: F-54, slides: ["08"], label: "Oracle share labels", shown: "logged 0% · oracle 100%", type: direct, source: "outputs/channel_policy.csv", key: "share of oracle lift for logged and oracle", formula: "-",
+     check: {expr: "row('outputs/channel_policy.csv', policy='logged (historical) policy')['share of oracle lift'] == 0 and row('outputs/channel_policy.csv', policy='oracle, same rep budget')['share of oracle lift'] == 1", fmt: bool}}
+  - {id: F-55, slides: ["08"], label: "p95 per request (card value)", shown: "23.3 ms", type: direct, source: "outputs/latency.csv", key: "stage=total, p95 ms", formula: "1 decimal",
+     check: {expr: "row('outputs/latency.csv', stage='total')['p95 ms']", fmt: "{:.1f}", expect: "23.3"}}
+  - {id: F-56, slides: ["08"], label: "Channel step share of the p50 request", shown: "channel step: 93% of p50", type: derived, source: "outputs/latency.csv", key: "18.94 / 20.44", formula: "channel p50 / total p50 x 100 = 92.7%",
+     check: {expr: "row('outputs/latency.csv', stage='channel')['p50 ms'] / row('outputs/latency.csv', stage='total')['p50 ms'] * 100", fmt: "{:.0f}%", expect: "93%"}}
+  - {id: F-57, slides: ["08"], label: "Policies scored on true engagement", shown: "policies scored on true engagement", type: direct, source: "src/genai_recommender/channel.py:274", key: "docstring", formula: "-",
+     check: {expr: "grep('src/genai_recommender/channel.py', r\"generator's true engagement probability\")", fmt: bool}}
+  - {id: F-58, slides: ["08"], label: "Timed requests", shown: "300 timed requests", type: direct, source: "outputs/latency.csv", key: "requests", formula: "-",
+     check: {expr: "int(row('outputs/latency.csv', stage='total')['requests'])", fmt: "{:d}", expect: "300"}}
+  - {id: F-59, slides: ["08"], label: "Results come from one make demo run", shown: "one make demo run", type: direct, source: "README line 57; outputs/summary.json llm_demo present", key: "-", formula: "-",
+     check: {expr: "grep('README.md', r'One run of `make demo`') and J('outputs/summary.json')['llm_demo']['model'] == 'llama3.2' and J('outputs/summary.json')['quick'] is False", fmt: bool}}
+  - {id: F-60, slides: ["07", "08"], label: "Historical rep share used as the budget", shown: "(rep budget, slide 07 'within budget')", type: direct, source: "outputs/channel_policy.csv; demo assets/outreach_plan.json", key: "rep share of the logged policy = 0.1328 = export rep_share_historical", formula: "-",
+     check: {expr: "round(row('outputs/channel_policy.csv', policy='logged (historical) policy')['rep share'], 4) == J('demo:assets/outreach_plan.json')['rep_share_historical']", fmt: bool}}
+  # ---- slide 09
+  - {id: F-61, slides: ["09"], label: "NDCG@10, last-item Markov", shown: "0.316", type: direct, source: "outputs/ranking.csv", key: "model='last-item Markov', NDCG@10", formula: "-",
+     check: {expr: "row('outputs/ranking.csv', model='last-item Markov')['NDCG@10']", fmt: "{:.3f}", expect: "0.316"}}
+  - {id: F-62, slides: ["09"], label: "NDCG@10, BERT4Rec", shown: "0.303", type: direct, source: "outputs/ranking.csv", key: "model='BERT4Rec', NDCG@10", formula: "-",
+     check: {expr: "row('outputs/ranking.csv', model='BERT4Rec')['NDCG@10']", fmt: "{:.3f}", expect: "0.303"}}
+  - {id: F-63, slides: ["09"], label: "NDCG@10, item-kNN", shown: "0.102", type: direct, source: "outputs/ranking.csv", key: "model='item-kNN', NDCG@10", formula: "-",
+     check: {expr: "row('outputs/ranking.csv', model='item-kNN')['NDCG@10']", fmt: "{:.3f}", expect: "0.102"}}
+  - {id: F-64, slides: ["09"], label: "NDCG@10, popularity", shown: "0.024", type: direct, source: "outputs/ranking.csv", key: "model='popularity', NDCG@10", formula: "-",
+     check: {expr: "row('outputs/ranking.csv', model='popularity')['NDCG@10']", fmt: "{:.3f}", expect: "0.024"}}
+  - {id: F-65, slides: ["09"], label: "Format-pathway slice: Markov vs BERT4Rec", shown: "Markov 0.365 vs 0.232", type: direct, source: "outputs/ranking_by_segment.csv", key: "slice='step=pathway', NDCG@10", formula: "-",
+     check: {expr: "f\"{row('outputs/ranking_by_segment.csv', model='last-item Markov', slice='step=pathway')['NDCG@10']:.3f} {row('outputs/ranking_by_segment.csv', model='BERT4Rec', slice='step=pathway')['NDCG@10']:.3f}\"", fmt: "{}", expect: "0.365 0.232"}}
+  - {id: F-66, slides: ["09"], label: "Resumed-series slice: BERT4Rec vs Markov", shown: "0.461 vs 0.375", type: direct, source: "outputs/ranking_by_segment.csv", key: "slice='step=series_resume', NDCG@10", formula: "-",
+     check: {expr: "f\"{row('outputs/ranking_by_segment.csv', model='BERT4Rec', slice='step=series_resume')['NDCG@10']:.3f} {row('outputs/ranking_by_segment.csv', model='last-item Markov', slice='step=series_resume')['NDCG@10']:.3f}\"", fmt: "{}", expect: "0.461 0.375"}}
+  # ---- slide 10
+  - {id: F-67, slides: ["10"], label: "Licence", shown: "MIT", type: direct, source: "LICENSE line 1", key: "-", formula: "-",
+     check: {expr: "T('LICENSE').startswith('MIT License')", fmt: bool}}
+  - {id: F-68, slides: ["10"], label: "Stack chips are real dependencies", shown: "PyTorch · scikit-learn · Ollama · llama3.2 · Python", type: direct, source: "pyproject.toml; src/genai_recommender/rag.py", key: "torch, scikit-learn, OllamaLLM(model='llama3.2')", formula: "-",
+     check: {expr: "grep('pyproject.toml', r'\"torch') and grep('pyproject.toml', r'\"scikit-learn') and grep('pyproject.toml', r'requires-python') and grep('src/genai_recommender/rag.py', r'model: str = \"llama3.2\"')", fmt: bool}}
+  - {id: F-69, slides: ["10"], label: "Run command", shown: "$ make demo", type: direct, source: "Makefile", key: "demo target", formula: "-",
+     check: {expr: "grep('Makefile', r'^demo:')", fmt: bool}}
+  - {id: F-70, slides: ["10"], label: "make demo writes three llama3.2 drafts", shown: "+ 3 llama3.2 drafts", type: direct, source: "Makefile demo target", key: "--demo-n 3", formula: "-",
+     check: {expr: "grep('Makefile', r'genai-reco --llm ollama --demo-n 3')", fmt: bool}}
+  - {id: F-71, slides: ["10"], label: "make demo wall-clock time", shown: "~4 min on CPU", type: derived, source: "outputs/summary.json", key: "wall_seconds = 233.4", formula: "233.4 / 60 = 3.9 min",
+     check: {expr: "round(J('outputs/summary.json')['wall_seconds'] / 60)", fmt: "~{:d} min", expect: "~4 min"}}
+
+slides:
+  - id: "01"
+    title: "The industry"
+    image: slides/slide-01.jpg
+    time: "0.0-7.2 s"
+    composition: "compositions/s01-context.html"
+    text:
+      - "01 · THE INDUSTRY"
+      - "Every week, each doctor's next message has to be chosen."
+      - "WHO LIVES WITH THIS · Pharma & biotech brand teams · Field sales & omnichannel ops · Medical-legal review"
+      - "01 Everyone in a segment gets the same content — Content that doesn't follow on gets ignored"
+      - "02 Email, SMS or a rep visit, picked by habit — Reps are the costliest touch and a fixed headcount"
+      - "03 Only approved claims may be quoted — An outdated figure is a compliance incident"
+      - "04 Old and new claims read almost the same — Only the numbers change between versions"
+      - "THIS PROJECT tackles all four, end to end · what to send → which channel → what it says"
+    assumptions: [A-13]
+    illustrative: ["The whole slide is context; no repo figures."]
+    change: "Edit the chips (#ctx-c1..3) and cards (#ctx-k1..4) in compositions/s01-context.html."
+  - id: "02"
+    title: "This project"
+    image: slides/slide-02.jpg
+    time: "6.8-11.6 s"
+    composition: "compositions/s02-hook.html"
+    text:
+      - "02 · THIS PROJECT"
+      - "20,000 prescribers. 480 pieces of content. Email, SMS or a rep visit?"
+      - "626,414 reads over 2 years · 299,722 logged sends · 252 expired claims look like current ones"
+    assumptions: [A-01]
+    illustrative: ["Rings in the background are decoration."]
+    change: "Headline spans #hook-l1..l3 and chips #hook-f1..f3 in compositions/s02-hook.html; counts come from data/ (datagen.py Scale)."
+  - id: "03"
+    title: "How it works (white chapter, slide A)"
+    image: slides/slide-03.jpg
+    time: "11.3-19.3 s"
+    composition: "compositions/explainer.html (CONFIG.blocks, CONFIG.groups, CONFIG.loop)"
+    text:
+      - "03 · HOW IT WORKS"
+      - "From reading history to a message"
+      - "READING what each doctor read → [RECOMMEND: NEXT CONTENT what to send next → CHANNEL email, SMS or a visit?] → [GROUNDED DRAFT: CLAIMS approved ones only → WRITE a local language model drafts] → MESSAGE OUT ✓ approved claims ✓ right brand ✓ numbers checked"
+      - "learns reading order (loop over NEXT CONTENT)"
+    assumptions: [A-06, A-07]
+    illustrative: ["Icons and colours are a visual language, not data.", "'numbers checked' means the number-only grounding check (A-06)."]
+    change: "Edit CONFIG in compositions/explainer.html; badge truth comes from retrieval.csv and summary.json (F-10)."
+  - id: "04"
+    title: "The key idea (white chapter, slide B)"
+    image: slides/slide-04.jpg
+    time: "19.3-26.3 s"
+    composition: "compositions/explainer.html (#ex-b ...)"
+    text:
+      - "04 · THE KEY IDEA"
+      - "The rules live in the index"
+      - "Only approved claims are searchable — expired and draft versions never enter it"
+      - "Search stays inside the content's brand — another product's claim can't come back"
+      - "Every number in the draft is checked — it must appear in a claim it was given"
+      - "ONE QUERY · SOMNAVEL, ELDERLY PATIENTS: APPROVED S19 reduced the primary endpoint by 47% · EXPIRED S22 reduced the primary endpoint by 28% (struck) · EXPIRED S23 recommended dose 100 mg once daily (struck)"
+      - "Same sentence, different number. Only the approved 47% reaches the model."
+      - "79 test queries: index every claim → 73% pull an unapproved one. This design → 0%."
+    assumptions: [A-06, A-07, A-12]
+    illustrative: ["The three claim cards are real snippets (S19, S22, S23) shortened to their claim; the strike-out animation illustrates that expired claims are never indexed (they are filtered before embedding, not removed at query time).", "The grounding check also accepts numbers from the content title (A-06)."]
+    change: "Markup under #ex-b in compositions/explainer.html; the footnote figures are F-13, F-15, F-16."
+  - id: "05"
+    title: "Architecture"
+    image: slides/slide-05a.jpg
+    image2: slides/slide-05b.jpg
+    time: "26.0-40.6 s"
+    composition: "compositions/s03-architecture.html"
+    text:
+      - "05 · ARCHITECTURE"
+      - "Three models, one request path, one claim check."
+      - "serve.py · p50 per stage: RANK 0.67 ms → CHANNEL 18.94 ms → RETRIEVE + DRAFT 0.80 ms → CHECK · p95 total 23.27 ms (stub)"
+      - "SOURCES: datagen.py Generator (seed 7 · 2 yrs) → writes → data/ (626k reads, 300k sends, 489 claims); truth/ (hidden) → eval only"
+      - "FEATURES + INDEX: data.py Clean + split (−40 link scanners, leave last out); channel.py Send features (prior-day history, 3 rows / request); rag.py Claim index (226 approved only, TF-IDF + SVD 64-d)"
+      - "MODELS: bert4rec.py BERT4Rec (2 layers · 64-d, 133k params, CPU); channel.py Channel model (GBM + isotonic, p(engage) × 3); Ollama · CPU llama3.2 · 3B (5.6–6.6 s / draft, stub in tests + CI)"
+      - "DECIDE: serve.py Rank (top-10 of 480, seen masked); channel.py Pick channel (request: argmax, batch: rep budget); rag.py Drafter (retrieve, prompt, then check)"
+      - "RESPOND: numbers grounded? → pass → serve.py Recommendation (item_id · top10, channel · channel_p, draft · snippet_ids, grounded, ms per stage); fail → drafts.md"
+      - "Edge labels: item ids, scores, features, p × 3, top item, item + channel, top-3 approved claims · same brand, prompt, text, draft, pass, fail, writes, eval only"
+      - "EVALUATE cli.py → outputs/ · ranking.csv vs baselines.py · channel_policy.csv on truth/ · retrieval.csv 3 arms · drafts.md pass/FAIL"
+      - "Legend: request path · batch (train, fit) · check · store · external model"
+      - "critical path · LLM draft ≈ 300× the rest"
+    assumptions: [A-01, A-04, A-05, A-06, A-08, A-09]
+    illustrative: ["Packets moving along the wires show execution order, not timing.", "Solid wires = the per-request path in serve.py; dashed = batch work done once per run (generate, split, train, fit, score).", "The fail branch: grounding_check marks the draft grounded=false with the ungrounded numbers, and cli.py writes it as FAIL in drafts_*.md; there is no automatic retry or human approval step in the repo (README 'Known limitations').", "Pick channel takes the eligible argmax per request; the rep budget applies only in the batch policy (README 'How it works')."]
+    change: "NODES and the W (wires) object in compositions/s03-architecture.html; band numbers from outputs/latency.csv."
+  - id: "06"
+    title: "The system running"
+    image: slides/slide-06a.jpg
+    image2: slides/slide-06b.jpg
+    time: "40.2-54.8 s"
+    composition: "compositions/s04-routes.html (HIST array, request trace markup)"
+    text:
+      - "06 · THE SYSTEM RUNNING"
+      - "BERT4Rec trains on a laptop CPU and stops itself."
+      - "epoch 22 · valid NDCG@10 0.303 (curve of 14 evaluation points, best · 0.303 marker)"
+      - "196 s training, 4 CPU threads, no GPU · 133,345 parameters · 2 layers · 64-d · 576,746 training events · 19,960 prescribers · epoch 22 best on validation; stopped at 28"
+      - "One real request, end to end, with llama3.2."
+      - "REQUEST Prescriber 2651 (neurology · no rep coverage) · RANK Somnavel elderly patients series, part 5 (BERT4Rec top unseen item of 480) · CHANNEL email 0.194 ✓, SMS 0.114, rep 0.416 not eligible · CLAIMS S21 · S20 · S19 (approved, Somnavel only, top 3)"
+      - "EMAIL DRAFT · llama3.2 via Ollama · 6,605 ms — Subject line + 3 claim sentences (excerpt) — ✓ claim check: pass · all 8 numbers in S19–S21 or the title"
+      - "outputs/drafts_llama3.2.md · excerpt · 3 of 3 drafts pass; the check covers numbers, not wording"
+    assumptions: [A-05, A-06, A-09, A-11]
+    illustrative: ["The curve is drawn from bert4rec_training.json (F-33); the readout steps through the logged points.", "The draft card shows the subject and the three claim sentences of the real draft; the greeting and closing lines are elided ('…').", "The latency counter animates up to the logged 6,605 ms; it is not a live timer."]
+    change: "HIST array and trace markup in compositions/s04-routes.html; the trace is the Customer 2651 section of outputs/drafts_llama3.2.md."
+  - id: "07"
+    title: "End-user value (white)"
+    image: slides/slide-07.jpg
+    time: "54.5-67.5 s"
+    composition: "compositions/value.html (SHEET block injected by tools/inject_sheet.py)"
+    text:
+      - "07 · END-USER VALUE"
+      - "What the field team gets"
+      - "OUTREACH PLAN · NORTH REGION · 3,275 PRESCRIBERS — columns HCP, SPECIALTY, NEXT CONTENT, CHANNEL, PROB, CLAIMS, OK"
+      - "HCP-0001 Cardiology · Ixarond: real-world evidence (article) · EMAIL 0.19 · S162 S161 S160 ✓"
+      - "HCP-0002 Immunology · Dermavex switching from prior therapy series, part … · REP 0.65 · S171 S169 S170 ✓"
+      - "HCP-0003 Cardiology · Zentrivo real-world evidence series, part 5 · EMAIL 0.15 · S180 S179 S178 ✓"
+      - "HCP-0010 Oncology · Plaxumab first-line use series, part 4 · REP 0.54 · S48 S47 S46 ✓"
+      - "HCP-0016 Neurology · Torvenil managing side effects series, part 1 · REP 0.40 · S126 S125 S124 ✓"
+      - "HCP-0067 Primary care · Somnavel elderly patients series, part 4 · SMS 0.09 · S21 S20 S19 ✓"
+      - "+ 3,269 more prescribers on this plan · ✓ 3,275 planned · 395 rep visits, within budget · every draft passes the claim check"
+      - "FIELD TEAM · THIS ROUND · rep visit / email / SMS · PRESCRIBERS · BASE"
+      - "One next item, one channel, one checked message each. Reps go where a visit adds most."
+    assumptions: [A-03, A-06, A-10, A-12]
+    illustrative: ["HCP-xxxx are row positions in the export, not real people.", "Content titles are truncated on screen to fit the column.", "Clinic positions, the base, the rep figure, envelopes, SMS bubbles and the car are illustrative; the data has no geography.", "Green checks on clinics mean the claim-checked message was planned for that prescriber, not that the prescriber engaged.", "'Reps go where a visit adds most' paraphrases the rep-budget rule (largest predicted rep-over-digital margin, A-03)."]
+    change: "Re-run tools/export_outreach_plan.py, then tools/inject_sheet.py (--rows picks the rows); layout in compositions/value.html."
+  - id: "08"
+    title: "Results"
+    image: slides/slide-08.jpg
+    time: "67.2-76.0 s"
+    composition: "compositions/s05-results.html (stats array)"
+    text:
+      - "08 · RESULTS · ONE MAKE DEMO RUN"
+      - "More engagement, same reps, zero unapproved claims."
+      - "CHANNEL POLICY +8.9% engagement at the same rep budget · 189.8 → 206.6 per 1,000"
+      - "CHANNEL POLICY 62% of a perfect oracle's lift recovered · logged 0% · oracle 100%"
+      - "CLAIM RETRIEVAL 0.0% queries that reach an unapproved claim · index everything: 73.4%"
+      - "REQUEST PATH 23.3 ms p95 per request, stub drafter · channel step: 93% of p50"
+      - "19,960 prescribers · 79 claim queries · 300 timed requests · policies scored on true engagement"
+    assumptions: [A-02, A-03, A-04, A-07, A-12]
+    illustrative: ["Mini bars: card 1 = engaged per 1,000 as a share of the oracle's 217.1 (logged → model); card 2 = share of oracle lift; card 3 = 73.4% → 0%; card 4 = channel step's share of the p50 request."]
+    change: "The stats array and card text in compositions/s05-results.html."
+  - id: "09"
+    title: "What didn't win"
+    image: slides/slide-09.jpg
+    time: "75.6-81.8 s"
+    composition: "compositions/s06-twist.html"
+    text:
+      - "09 · WHAT DIDN'T WIN"
+      - "BERT4Rec does not beat a last-item Markov chain."
+      - "NDCG@10 over the full 480-item catalogue, last read held out, 19,960 prescribers"
+      - "Last-item Markov (what usually follows) 0.316 · BERT4Rec (133k params, 196 s training) 0.303 · Item-kNN (co-read items) 0.102 · Popularity 0.024"
+      - "Why: format pathways are first-order (Markov 0.365 vs 0.232). BERT4Rec wins only when a reader resumes a series (0.461 vs 0.375). Next: blend the two."
+    assumptions: [A-08, A-09, A-12]
+    illustrative: ["Bar lengths: 1,000 px track = NDCG@10 0.35."]
+    change: "Rows #twist-r1..r4 (bar widths are inline styles) in compositions/s06-twist.html."
+  - id: "10"
+    title: "End card"
+    image: slides/slide-10.jpg
+    time: "81.4-85.8 s"
+    composition: "compositions/s07-end.html"
+    text:
+      - "10 · OPEN SOURCE · MIT · RUNS ON A LAPTOP"
+      - "genai-recommender"
+      - "github.com/kavya2693/genai-recommender"
+      - "PyTorch · scikit-learn · Ollama · llama3.2 · Python"
+      - "$ make demo   # 19,960 prescribers + 3 llama3.2 drafts, ~4 min on CPU"
+    assumptions: [A-11, A-12]
+    illustrative: []
+    change: "Text in compositions/s07-end.html."
+
+caveats:
+  - "Channel-policy numbers (+8.9%, 62%) are scored with the generator's own engagement function, which real logs do not provide (A-02)."
+  - "The claim check covers numbers only; README 'Known limitations' shows two of the three llama3.2 drafts passing it while misstating a claim's prose. Slide 06 shows the one draft whose prose follows its claims."
+  - "llama3.2 results are three demonstration drafts, not a pass rate (A-05)."
+  - "Latency is single-machine, single-thread, stub drafter; the max column (53.82 ms) is first-touch outliers (README)."
+  - "The headline sequence result depends on the generator: format pathways are first-order by construction, which favours the Markov chain (README 'Known limitations')."
+  - "Slide 07 is one region's plan exported by re-running the repo's pipeline (A-10); HCP ids are row positions, not people."
+  - "Slide 01 statements are general industry knowledge (A-13)."
+
+stills:
+  master: renders/genai-recommender-master.mp4   # relative to demo_dir
+  width: 1600
+  times: {"01": 6.4, "02": 11.1, "03": 18.9, "04": 25.5, "05a": 31.4, "05b": 39.8, "06a": 46.5, "06b": 54.0, "07": 66.6, "08": 75.2, "09": 81.3, "10": 85.6}
+
+# Extra check helpers (Python), available to check expressions.
+helpers: |
+  import re as _re
+  def sheet_rows_match():
+      """The SHEET block injected in value.html must equal the exported outreach plan rows."""
+      html = T('demo:compositions/value.html')
+      m = _re.search(r"const SHEET = (\{.*?\}); /\* SHEET:END", html, _re.S)
+      sheet = json.loads(m.group(1))
+      plan = J('demo:assets/outreach_plan.json')
+      for r in sheet['rows']:
+          src = plan['rows'][r['pos']]
+          for k in ('specialty', 'title', 'channel', 'p_chosen', 'snippet_ids', 'grounded'):
+              if r[k] != src[k]:
+                  return False
+      same = all(sheet[k] == plan[k] for k in ('prescribers', 'rep_budget', 'channels', 'grounded'))
+      return same and [r['pos'] for r in sheet['rows']] == [0, 1, 2, 9, 15, 66]
+  def curve_matches():
+      """HIST in s04-routes.html must equal the training log history."""
+      html = T('demo:compositions/s04-routes.html')
+      m = _re.search(r"const HIST = (\[.*?\]);", html, _re.S)
+      hist = json.loads(m.group(1))
+      log = [[h['epoch'], h['valid_ndcg10']] for h in J('outputs/bert4rec_training.json')['history']]
+      return hist == log
+  def draft_2651_ok():
+      """Shown lines are verbatim in the draft; every number in it is in S19-S21 or the title."""
+      md = T('outputs/drafts_llama3.2.md')
+      sec = md.split('## Customer 2651')[1].split('## Customer')[0]
+      text = sec.split('```text')[1].split('```')[0]
+      shown = [
+          'Subject: Educational Content for Neurology Professionals - Somnavel Elderly Patients Series, Part 5',
+          'The most common adverse reaction with Somnavel in elderly patients was fatigue (4% of patients).',
+          'For elderly patients, the recommended Somnavel dose is 5 mg once daily; no adjustment is needed at week 52.',
+          'In the SOM-146 study, Somnavel reduced the primary endpoint by 47% versus comparator at week 52.',
+      ]
+      if not all(s in text for s in shown):
+          return False
+      sn = R('data/snippets.csv').set_index('snippet_id')
+      allowed = set(_re.findall(r'\d+(?:\.\d+)?', ' '.join(sn.loc[[21, 20, 19], 'text']) + ' Somnavel elderly patients series, part 5'))
+      nums = _re.findall(r'\d+(?:\.\d+)?', text)
+      return len(nums) == 8 and all(n in allowed for n in nums)

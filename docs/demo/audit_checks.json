@@ -1,0 +1,574 @@
+{
+ "generated": "2026-10-14 14:39",
+ "commit": "37d49ecc8dcf2a405ea628ac0a26027e2d2aaa41",
+ "checks": [
+  {
+   "id": "F-01",
+   "shown": "3 chips",
+   "type": "general-knowledge",
+   "status": "manual",
+   "computed": "-",
+   "reason": "Context statement, not a repo output."
+  },
+  {
+   "id": "F-02",
+   "shown": "4 problem cards",
+   "type": "general-knowledge",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-03",
+   "shown": "20,000 prescribers",
+   "type": "direct",
+   "computed": "20,000",
+   "expect": "20,000",
+   "status": "pass"
+  },
+  {
+   "id": "F-04",
+   "shown": "480 pieces of content / top-10 of 480 / 480-item catalogue",
+   "type": "direct",
+   "computed": "480",
+   "expect": "480",
+   "status": "pass"
+  },
+  {
+   "id": "F-05",
+   "shown": "Email, SMS or a rep visit?",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-06",
+   "shown": "626,414 reads",
+   "type": "direct",
+   "computed": "626,414",
+   "expect": "626,414",
+   "status": "pass"
+  },
+  {
+   "id": "F-07",
+   "shown": "over 2 years / 2 yrs",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-08",
+   "shown": "299,722 logged sends",
+   "type": "direct",
+   "computed": "299,722",
+   "expect": "299,722",
+   "status": "pass"
+  },
+  {
+   "id": "F-09",
+   "shown": "252 expired claims look like current ones",
+   "type": "direct",
+   "computed": "252",
+   "expect": "252",
+   "status": "pass"
+  },
+  {
+   "id": "F-10",
+   "shown": "3 green badges",
+   "type": "derived",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-11",
+   "shown": "learns reading order",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-12",
+   "shown": "S19 APPROVED 47% \u00b7 S22 EXPIRED 28% \u00b7 S23 EXPIRED 100 mg",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-13",
+   "shown": "73%",
+   "type": "direct",
+   "computed": "73%",
+   "expect": "73%",
+   "status": "pass"
+  },
+  {
+   "id": "F-14",
+   "shown": "3 step statements",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-15",
+   "shown": "This design \u2192 0%",
+   "type": "direct",
+   "computed": "0%",
+   "expect": "0%",
+   "status": "pass"
+  },
+  {
+   "id": "F-16",
+   "shown": "79 test queries / 79 claim queries",
+   "type": "direct",
+   "computed": "79",
+   "expect": "79",
+   "status": "pass"
+  },
+  {
+   "id": "F-17",
+   "shown": "RANK 0.67 ms",
+   "type": "direct",
+   "computed": "0.67",
+   "expect": "0.67",
+   "status": "pass"
+  },
+  {
+   "id": "F-18",
+   "shown": "CHANNEL 18.94 ms",
+   "type": "direct",
+   "computed": "18.94",
+   "expect": "18.94",
+   "status": "pass"
+  },
+  {
+   "id": "F-19",
+   "shown": "RETRIEVE + DRAFT 0.80 ms",
+   "type": "direct",
+   "computed": "0.80",
+   "expect": "0.80",
+   "status": "pass"
+  },
+  {
+   "id": "F-20",
+   "shown": "p95 total 23.27 ms / 23.3 ms",
+   "type": "direct",
+   "computed": "23.27",
+   "expect": "23.27",
+   "status": "pass"
+  },
+  {
+   "id": "F-21",
+   "shown": "626k reads \u00b7 300k sends \u00b7 489 claims",
+   "type": "derived",
+   "computed": "626k 300k 489",
+   "expect": "626k 300k 489",
+   "status": "pass"
+  },
+  {
+   "id": "F-22",
+   "shown": "\u221240 link scanners",
+   "type": "direct",
+   "computed": "40",
+   "expect": "40",
+   "status": "pass"
+  },
+  {
+   "id": "F-23",
+   "shown": "226 approved only",
+   "type": "direct",
+   "computed": "226",
+   "expect": "226",
+   "status": "pass"
+  },
+  {
+   "id": "F-24",
+   "shown": "TF-IDF + SVD 64-d",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-25",
+   "shown": "2 layers \u00b7 64-d \u00b7 133k params",
+   "type": "direct",
+   "computed": "2 64 133k",
+   "expect": "2 64 133k",
+   "status": "pass"
+  },
+  {
+   "id": "F-26",
+   "shown": "seed 7 \u00b7 2 yrs",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-27",
+   "shown": "top-10 of 480 \u00b7 seen masked",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-28",
+   "shown": "5.6\u20136.6 s / draft",
+   "type": "derived",
+   "computed": "5.6-6.6",
+   "expect": "5.6-6.6",
+   "status": "pass"
+  },
+  {
+   "id": "F-29",
+   "shown": "LLM draft \u2248 300\u00d7 the rest",
+   "type": "derived",
+   "computed": "300x",
+   "expect": "300x",
+   "status": "pass"
+  },
+  {
+   "id": "F-30",
+   "shown": "llama3.2 \u00b7 3B \u00b7 Ollama \u00b7 CPU \u00b7 stub in tests + CI",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-31",
+   "shown": "datagen.py, data.py, channel.py (x3), rag.py (x2), bert4rec.py, serve.py (x2), cli.py, baselines.py",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-32",
+   "shown": "prior-day history \u00b7 3 rows / request",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-33",
+   "shown": "14 points, epochs 2-28",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-34",
+   "shown": "epoch 22 \u00b7 0.303",
+   "type": "direct",
+   "computed": "22 0.303",
+   "expect": "22 0.303",
+   "status": "pass"
+  },
+  {
+   "id": "F-35",
+   "shown": "stopped at 28",
+   "type": "direct",
+   "computed": "28",
+   "expect": "28",
+   "status": "pass"
+  },
+  {
+   "id": "F-36",
+   "shown": "196 s",
+   "type": "direct",
+   "computed": "196 s",
+   "expect": "196 s",
+   "status": "pass"
+  },
+  {
+   "id": "F-37",
+   "shown": "4 CPU threads, no GPU",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-38",
+   "shown": "133,345",
+   "type": "direct",
+   "computed": "133,345",
+   "expect": "133,345",
+   "status": "pass"
+  },
+  {
+   "id": "F-39",
+   "shown": "576,746 training events \u00b7 19,960 prescribers",
+   "type": "direct",
+   "computed": "576,746 19,960",
+   "expect": "576,746 19,960",
+   "status": "pass"
+  },
+  {
+   "id": "F-40",
+   "shown": "Prescriber 2651 \u00b7 Somnavel elderly patients series, part 5 \u00b7 email 0.194 / SMS 0.114 / rep 0.416 \u00b7 S21 S20 S19 \u00b7 6,605 ms",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-41",
+   "shown": "neurology \u00b7 no rep coverage \u00b7 rep 0.416 not eligible",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-42",
+   "shown": "claim check: pass \u00b7 all 8 numbers in S19\u2013S21 or the title",
+   "type": "derived",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-43",
+   "shown": "3 of 3 drafts pass",
+   "type": "direct",
+   "computed": "3 of 3",
+   "expect": "3 of 3",
+   "status": "pass"
+  },
+  {
+   "id": "F-44",
+   "shown": "3,275 prescribers / 3,275 planned",
+   "type": "direct",
+   "computed": "3,275",
+   "expect": "3,275",
+   "status": "pass"
+  },
+  {
+   "id": "F-45",
+   "shown": "395 rep visits, within budget",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-46",
+   "shown": "every draft passes the claim check",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-47",
+   "shown": "HCP-0001, -0002, -0003, -0010, -0016, -0067",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-48",
+   "shown": "+ 3,269 more prescribers",
+   "type": "derived",
+   "computed": "3,269",
+   "expect": "3,269",
+   "status": "pass"
+  },
+  {
+   "id": "F-49",
+   "shown": "(supports every slide 07 row)",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-50",
+   "shown": "+8.9%",
+   "type": "derived",
+   "computed": "+8.9%",
+   "expect": "+8.9%",
+   "status": "pass"
+  },
+  {
+   "id": "F-51",
+   "shown": "189.8 \u2192 206.6 per 1,000",
+   "type": "direct",
+   "computed": "189.8 -> 206.6",
+   "expect": "189.8 -> 206.6",
+   "status": "pass"
+  },
+  {
+   "id": "F-52",
+   "shown": "62%",
+   "type": "direct",
+   "computed": "62%",
+   "expect": "62%",
+   "status": "pass"
+  },
+  {
+   "id": "F-53",
+   "shown": "0.0% (index everything: 73.4%)",
+   "type": "direct",
+   "computed": "0.0% 73.4%",
+   "expect": "0.0% 73.4%",
+   "status": "pass"
+  },
+  {
+   "id": "F-54",
+   "shown": "logged 0% \u00b7 oracle 100%",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-55",
+   "shown": "23.3 ms",
+   "type": "direct",
+   "computed": "23.3",
+   "expect": "23.3",
+   "status": "pass"
+  },
+  {
+   "id": "F-56",
+   "shown": "channel step: 93% of p50",
+   "type": "derived",
+   "computed": "93%",
+   "expect": "93%",
+   "status": "pass"
+  },
+  {
+   "id": "F-57",
+   "shown": "policies scored on true engagement",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-58",
+   "shown": "300 timed requests",
+   "type": "direct",
+   "computed": "300",
+   "expect": "300",
+   "status": "pass"
+  },
+  {
+   "id": "F-59",
+   "shown": "one make demo run",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-60",
+   "shown": "(rep budget, slide 07 'within budget')",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-61",
+   "shown": "0.316",
+   "type": "direct",
+   "computed": "0.316",
+   "expect": "0.316",
+   "status": "pass"
+  },
+  {
+   "id": "F-62",
+   "shown": "0.303",
+   "type": "direct",
+   "computed": "0.303",
+   "expect": "0.303",
+   "status": "pass"
+  },
+  {
+   "id": "F-63",
+   "shown": "0.102",
+   "type": "direct",
+   "computed": "0.102",
+   "expect": "0.102",
+   "status": "pass"
+  },
+  {
+   "id": "F-64",
+   "shown": "0.024",
+   "type": "direct",
+   "computed": "0.024",
+   "expect": "0.024",
+   "status": "pass"
+  },
+  {
+   "id": "F-65",
+   "shown": "Markov 0.365 vs 0.232",
+   "type": "direct",
+   "computed": "0.365 0.232",
+   "expect": "0.365 0.232",
+   "status": "pass"
+  },
+  {
+   "id": "F-66",
+   "shown": "0.461 vs 0.375",
+   "type": "direct",
+   "computed": "0.461 0.375",
+   "expect": "0.461 0.375",
+   "status": "pass"
+  },
+  {
+   "id": "F-67",
+   "shown": "MIT",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-68",
+   "shown": "PyTorch \u00b7 scikit-learn \u00b7 Ollama \u00b7 llama3.2 \u00b7 Python",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-69",
+   "shown": "$ make demo",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-70",
+   "shown": "+ 3 llama3.2 drafts",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-71",
+   "shown": "~4 min on CPU",
+   "type": "derived",
+   "computed": "~4 min",
+   "expect": "~4 min",
+   "status": "pass"
+  }
+ ]
+}

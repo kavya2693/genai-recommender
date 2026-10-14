@@ -1,0 +1,261 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        /* WHITE "END-USER VALUE" SLIDE: the artifact the user plans with (left) + a small 2D scene of the
+           person using it (right). Data is inlined by tools/inject_sheet.py between the SHEET markers. */
+        #value-root {
+          position: absolute; inset: 0;
+          --w-bg: #ffffff; --w-ink: #111827; --w-soft: #4b5563; --w-mute: #6b7280; --w-line: #d1d5db; --w-faint: #f3f4f6;
+          --w-data: #d97706; --w-model: #6d3cf0; --w-tools: #1f8fa8; --w-risk: #dc2b4a; --w-opt: #0f9f6e;
+          color: var(--w-ink); font-family: Inter, "Helvetica Neue", sans-serif;
+        }
+        #value-root .page { position: absolute; inset: 0; background: var(--w-bg); }
+        #value-root .edge { position: absolute; top: 0; width: 10px; height: 1080px; background: var(--w-model); }
+        #value-root .kick {
+          position: absolute; left: 120px; top: 84px; font-family: "JetBrains Mono", monospace; font-size: 24px;
+          font-weight: 700; letter-spacing: 0.18em; color: var(--w-mute);
+        }
+        #value-root .ttl {
+          position: absolute; left: 120px; top: 124px; font-family: Montserrat, sans-serif; font-weight: 900;
+          font-size: 68px; letter-spacing: -0.02em; white-space: nowrap;
+        }
+        #value-root .ttl em { font-style: normal; color: var(--w-model); }
+        #value-root .uline { position: absolute; left: 124px; top: 222px; width: 120px; height: 10px; border-radius: 5px; background: var(--w-model); transform-origin: left center; }
+
+        /* sheet */
+        #value-root .sheet {
+          position: absolute; left: 120px; top: 280px; width: 1060px; height: 640px; border: 3px solid var(--w-line);
+          border-radius: 24px; background: #fff; box-shadow: 0 18px 40px rgba(17, 24, 39, 0.08); overflow: hidden;
+        }
+        #value-root .sheet-head {
+          height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+          background: var(--w-ink); color: #fff; font-family: "JetBrains Mono", monospace; font-size: 22px; font-weight: 700; letter-spacing: 0.08em;
+        }
+        #value-root .sheet-head span:last-child { color: #c4b5fd; }
+        #value-root .row {
+          position: relative; display: flex; align-items: center; height: 64px; padding: 0 22px;
+          font-family: "JetBrains Mono", monospace; font-size: 20px; color: var(--w-ink); border-bottom: 2px solid var(--w-faint);
+        }
+        #value-root .row.hdr { height: 54px; font-size: 18px; font-weight: 700; letter-spacing: 0.1em; color: var(--w-mute); background: #fafafa; }
+        #value-root .row .tint { position: absolute; inset: 0; opacity: 0; }
+        #value-root .c { position: relative; white-space: nowrap; overflow: hidden; }
+        #value-root .c1 { width: 132px; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+        #value-root .c1 i { display: block; flex: 0 0 auto; width: 14px; height: 14px; border-radius: 4px; background: var(--w-line); }
+        #value-root .c2 { width: 150px; font-family: Inter, sans-serif; font-size: 20px; color: var(--w-soft); }
+        #value-root .c3 { width: 312px; font-family: Inter, sans-serif; font-size: 20px; font-weight: 600; text-overflow: ellipsis; padding-right: 12px; }
+        #value-root .c4 { width: 104px; }
+        #value-root .c4 span { display: inline-block; padding: 3px 10px; border-radius: 6px; color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 0.06em; }
+        #value-root .c5 { width: 80px; text-align: right; padding-right: 16px; }
+        #value-root .c6 { width: 168px; color: var(--w-soft); font-size: 18px; }
+        #value-root .c7 { width: 40px; display: flex; justify-content: center; }
+        #value-root .ok { display: block; width: 26px; height: 26px; border-radius: 50%; background: var(--w-opt); position: relative; }
+        #value-root .ok svg { position: absolute; left: 5px; top: 5px; width: 16px; height: 16px; }
+        #value-root .more { padding: 14px 30px 0; font-family: "JetBrains Mono", monospace; font-size: 20px; color: var(--w-mute); }
+        #value-root .totals {
+          position: absolute; left: 0; bottom: 0; width: 100%; height: 66px; display: flex; align-items: center; gap: 14px; padding: 0 30px;
+          background: #ecfdf5; border-top: 2px solid #a7f3d0; font-size: 23px; font-weight: 700; color: #065f46; white-space: nowrap;
+        }
+        #value-root .totals b { display: block; flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; background: var(--w-opt); position: relative; }
+        #value-root .totals svg { position: absolute; left: 6px; top: 6px; width: 16px; height: 16px; }
+
+        /* scene */
+        #value-root .scene-lab { position: absolute; font-family: "JetBrains Mono", monospace; font-size: 20px; font-weight: 700; letter-spacing: 0.14em; color: var(--w-mute); white-space: nowrap; }
+        #value-root .desk { position: absolute; left: 1230px; top: 312px; width: 590px; height: 128px; border-radius: 20px; background: var(--w-faint); }
+        #value-root .key { position: absolute; left: 1350px; top: 360px; display: flex; gap: 22px; font-family: "JetBrains Mono", monospace; font-size: 20px; color: var(--w-soft); white-space: nowrap; }
+        #value-root .key span { display: flex; align-items: center; gap: 8px; }
+        #value-root .key i { display: block; width: 14px; height: 14px; border-radius: 4px; }
+        #value-root .map {
+          position: absolute; left: 1230px; top: 462px; width: 590px; height: 458px; border-radius: 24px; border: 3px solid var(--w-line);
+          background-color: #fbfbfc;
+          background-image: linear-gradient(#eef0f3 2px, transparent 2px), linear-gradient(90deg, #eef0f3 2px, transparent 2px);
+          background-size: 48px 48px; overflow: hidden;
+        }
+        #value-root svg.layer { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+        #value-root .caption {
+          position: absolute; left: 120px; top: 944px; width: 1700px; font-size: 30px; font-weight: 700; color: var(--w-ink); white-space: nowrap;
+        }
+        #value-root .caption span { color: var(--w-model); }
+      </style>
+
+      <div id="value-root" data-composition-id="value" data-width="1920" data-height="1080">
+        <div class="page" id="va-page">
+          <div class="kick" id="va-kick">07 · END-USER VALUE</div>
+          <div class="ttl" id="va-ttl">What the <em>field team</em> gets</div>
+          <div class="uline" id="va-ul"></div>
+
+          <div class="sheet" id="va-sheet">
+            <div class="sheet-head"><span id="va-head-l">OUTREACH PLAN</span><span id="va-head-r"></span></div>
+            <div class="row hdr" id="va-hdr">
+              <div class="c c1">HCP</div><div class="c c2" style="font-family: 'JetBrains Mono', monospace; font-size: 18px">SPECIALTY</div>
+              <div class="c c3" style="font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700">NEXT CONTENT</div>
+              <div class="c c4">CHANNEL</div><div class="c c5">PROB</div><div class="c c6">CLAIMS</div><div class="c c7">OK</div>
+            </div>
+            <div id="va-rows"></div>
+            <div class="more" id="va-more"></div>
+            <div class="totals" id="va-totals"></div>
+          </div>
+
+          <div class="scene-lab" id="va-lab-desk" style="left: 1230px; top: 280px">FIELD TEAM · THIS ROUND</div>
+          <div class="desk" id="va-desk"></div>
+          <div class="key" id="va-key">
+            <span><i style="background: #6d3cf0"></i>rep visit</span>
+            <span><i style="background: #1f8fa8"></i>email</span>
+            <span><i style="background: #d97706"></i>SMS</span>
+          </div>
+          <div class="map" id="va-map"></div>
+          <div class="scene-lab" id="va-lab-map" style="left: 1254px; top: 476px">PRESCRIBERS</div>
+          <svg class="layer" id="va-svg" viewBox="0 0 1920 1080"></svg>
+
+          <div class="caption" id="va-caption">One next item, one channel, one checked message each. <span>Reps go where a visit adds most.</span></div>
+        </div>
+        <div class="edge" id="va-edge"></div>
+      </div>
+
+      <script>
+        (() => {
+          /* SHEET:BEGIN */ const SHEET = {"region":"north","prescribers":3275,"rep_share_historical":0.1328,"rep_budget":435,"channels":{"email":2735,"sms":145,"rep":395},"grounded":3275,"rows":[{"pos":0,"specialty":"cardiology","title":"Ixarond: real-world evidence (article)","channel":"email","p_chosen":0.1945,"snippet_ids":[162,161,160],"grounded":true},{"pos":1,"specialty":"immunology","title":"Dermavex switching from prior therapy series, part 3","channel":"rep","p_chosen":0.6517,"snippet_ids":[171,169,170],"grounded":true},{"pos":2,"specialty":"cardiology","title":"Zentrivo real-world evidence series, part 5","channel":"email","p_chosen":0.1452,"snippet_ids":[180,179,178],"grounded":true},{"pos":9,"specialty":"oncology","title":"Plaxumab first-line use series, part 4","channel":"rep","p_chosen":0.5421,"snippet_ids":[48,47,46],"grounded":true},{"pos":15,"specialty":"neurology","title":"Torvenil managing side effects series, part 1","channel":"rep","p_chosen":0.3984,"snippet_ids":[126,125,124],"grounded":true},{"pos":66,"specialty":"primary_care","title":"Somnavel elderly patients series, part 4","channel":"sms","p_chosen":0.0874,"snippet_ids":[21,20,19],"grounded":true}]}; /* SHEET:END */
+
+          const CONFIG = {
+            duration: 13.0,
+            chan: { rep: "#6d3cf0", email: "#1f8fa8", sms: "#d97706" },
+            label: { rep: "REP", email: "EMAIL", sms: "SMS" },
+            person: { x: 1280, y: 378 },
+            // illustrative clinic positions inside the map panel (no geography in the data)
+            clinics: [[1330, 580], [1530, 560], [1730, 600], [1350, 800], [1560, 760], [1740, 830]],
+            base: [1525, 905],
+          };
+          const NS = "http://www.w3.org/2000/svg";
+          const svg = document.getElementById("va-svg");
+          const el = (tag, attrs, parent) => {
+            const n = document.createElementNS(NS, tag);
+            Object.entries(attrs).forEach(([k, v]) => n.setAttribute(k, v));
+            (parent || svg).appendChild(n);
+            return n;
+          };
+          const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+          const fmt = (v) => Math.round(v).toLocaleString("en-US");
+          const tl = gsap.timeline({ paused: true });
+          const D = CONFIG.duration;
+          const hcp = (pos) => "HCP-" + String(pos + 1).padStart(4, "0");
+          const spec = (s) => s.replace("_", " ").replace(/^./, (c) => c.toUpperCase());
+
+          // ---------------- sheet ----------------
+          document.getElementById("va-head-r").textContent =
+            SHEET.region.toUpperCase() + " REGION · " + fmt(SHEET.prescribers) + " PRESCRIBERS";
+          const rowsEl = document.getElementById("va-rows");
+          SHEET.rows.forEach((r, i) => {
+            const col = CONFIG.chan[r.channel];
+            rowsEl.insertAdjacentHTML("beforeend",
+              '<div class="row" id="va-r' + i + '"><div class="tint" id="va-t' + i + '" style="background:' + col + '1f"></div>' +
+              '<div class="c c1"><i style="background:' + col + '"></i>' + hcp(r.pos) + "</div>" +
+              '<div class="c c2">' + spec(r.specialty) + "</div>" +
+              '<div class="c c3">' + r.title + "</div>" +
+              '<div class="c c4"><span style="background:' + col + '">' + CONFIG.label[r.channel] + "</span></div>" +
+              '<div class="c c5">' + r.p_chosen.toFixed(2) + "</div>" +
+              '<div class="c c6">' + r.snippet_ids.map((s) => "S" + s).join(" ") + "</div>" +
+              '<div class="c c7">' + (r.grounded ? '<span class="ok">' + CHECK + "</span>" : "") + "</div></div>");
+          });
+          document.getElementById("va-more").textContent = "+ " + fmt(SHEET.prescribers - SHEET.rows.length) + " more prescribers on this plan";
+          const allOk = SHEET.grounded === SHEET.prescribers;
+          document.getElementById("va-totals").innerHTML =
+            "<b>" + CHECK + "</b>" + fmt(SHEET.prescribers) + " planned · " + fmt(SHEET.channels.rep) + " rep visits, within budget · " +
+            (allOk ? "every draft passes the claim check" : fmt(SHEET.grounded) + " drafts pass the claim check");
+
+          // ---------------- scene: rep with the plan, prescribers' clinics ----------------
+          const P = CONFIG.person;
+          const person = el("g", { id: "va-person" });
+          el("circle", { cx: P.x, cy: P.y - 34, r: 16, fill: "#111827" }, person);
+          el("path", { d: "M" + (P.x - 26) + " " + (P.y + 40) + "v-26a26 22 0 0 1 52 0v26z", fill: "#6d3cf0" }, person);
+          const tablet = el("g", { id: "va-tablet" }, person);
+          el("rect", { x: P.x + 16, y: P.y - 12, width: 30, height: 38, rx: 5, fill: "#fff", stroke: "#111827", "stroke-width": 2.5 }, tablet);
+          [0, 1, 2, 3].forEach((k) => el("line", { x1: P.x + 21, x2: P.x + 41, y1: P.y - 3 + k * 7, y2: P.y - 3 + k * 7, stroke: ["#6d3cf0", "#1f8fa8", "#1f8fa8", "#d97706"][k], "stroke-width": 2.5 }, tablet));
+
+          const clinic = (g, x, y) => {
+            el("path", { d: "M" + (x - 26) + " " + (y - 4) + "l26-22 26 22v30h-52z", fill: "#fff", stroke: "#111827", "stroke-width": 2.5, "stroke-linejoin": "round" }, g);
+            el("path", { d: "M" + x + " " + (y + 2) + "v14M" + (x - 7) + " " + (y + 9) + "h14", stroke: "#dc2b4a", "stroke-width": 3.2, "stroke-linecap": "round" }, g);
+          };
+          const envelope = (g, col) => {
+            el("rect", { x: -16, y: -11, width: 32, height: 22, rx: 3, fill: col }, g);
+            el("path", { d: "M-14 -9l14 11 14-11", fill: "none", stroke: "#fff", "stroke-width": 2.2, "stroke-linejoin": "round" }, g);
+          };
+          const bubble = (g, col) => {
+            el("path", { d: "M-16 -12h32a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4h-20l-8 7v-7h-4a4 4 0 0 1-4-4v-14a4 4 0 0 1 4-4z", fill: col }, g);
+            [-8, 0, 8].forEach((dx) => el("circle", { cx: dx, cy: -1, r: 2.2, fill: "#fff" }, g));
+          };
+          const car = (g, col) => {
+            el("path", { d: "M-24 4v-8l7-9h22l9 9h8v8z", fill: col }, g);
+            el("rect", { x: -13, y: -10, width: 8, height: 7, rx: 1.5, fill: "#e5e7eb" }, g);
+            el("rect", { x: -2, y: -10, width: 9, height: 7, rx: 1.5, fill: "#e5e7eb" }, g);
+            el("circle", { cx: -14, cy: 6, r: 5.5, fill: "#111827" }, g);
+            el("circle", { cx: 13, cy: 6, r: 5.5, fill: "#111827" }, g);
+          };
+          // base the rep drives from
+          const base = el("g", { id: "va-base" });
+          el("rect", { x: CONFIG.base[0] - 40, y: CONFIG.base[1] - 18, width: 80, height: 30, rx: 8, fill: "#111827" }, base);
+          const bt = el("text", { x: CONFIG.base[0], y: CONFIG.base[1] + 4, "text-anchor": "middle", "font-family": "JetBrains Mono, monospace", "font-size": 18, "font-weight": 700, fill: "#fff" }, base);
+          bt.textContent = "BASE";
+
+          const clinics = SHEET.rows.map((r, i) => {
+            const [x, y] = CONFIG.clinics[i];
+            const g = el("g", { id: "va-cl" + i });
+            clinic(g, x, y);
+            const lab = el("text", { x, y: y + 48, "text-anchor": "middle", "font-family": "JetBrains Mono, monospace", "font-size": 20, "font-weight": 700, fill: CONFIG.chan[r.channel] }, g);
+            lab.textContent = hcp(r.pos);
+            const ok = el("g", { opacity: 0 });
+            el("circle", { cx: x + 26, cy: y - 22, r: 13, fill: "#0f9f6e" }, ok);
+            el("path", { d: "M" + (x + 20) + " " + (y - 21.5) + "l4 4 8-8.5", fill: "none", stroke: "#fff", "stroke-width": 3, "stroke-linecap": "round", "stroke-linejoin": "round" }, ok);
+            return { g, ok, x, y };
+          });
+
+          // tokens: email / SMS fly from the rep's plan, rep visits drive from the base
+          const T0 = 3.9, STEP = 0.78, FLY = 0.7;
+          SHEET.rows.forEach((r, i) => {
+            const c = clinics[i], col = CONFIG.chan[r.channel], at = T0 + i * STEP;
+            const tok = el("g", { opacity: 0 });
+            tl.to("#va-t" + i, { opacity: 1, duration: 0.25 }, at);
+            tl.to("#va-t" + i, { opacity: 0.35, duration: 0.4 }, at + 0.9);
+            if (r.channel === "rep") {
+              car(tok, col);
+              const [bx, by] = CONFIG.base;
+              tl.fromTo(tok, { attr: { opacity: 0 } }, { attr: { opacity: 1 }, duration: 0.1 }, at);
+              tl.fromTo(tok, { x: bx, y: by - 30 }, { keyframes: [{ x: bx, y: c.y + 8, duration: FLY * 0.45, ease: "power1.inOut" }, { x: c.x + (c.x < bx ? 62 : -62), y: c.y + 8, duration: FLY * 0.55, ease: "power1.inOut" }] }, at);
+              tl.to(tok, { attr: { opacity: 0 }, duration: 0.3 }, at + FLY + 0.9);
+            } else {
+              (r.channel === "email" ? envelope : bubble)(tok, col);
+              tl.fromTo(tok, { attr: { opacity: 0 } }, { attr: { opacity: 1 }, duration: 0.1 }, at);
+              tl.fromTo(tok, { x: P.x + 31, y: P.y + 4, scale: 0.6 }, { x: c.x, y: c.y - 46, scale: 1, duration: FLY, ease: "power2.inOut" }, at);
+              tl.to(tok, { attr: { opacity: 0 }, duration: 0.2 }, at + FLY + 0.15);
+            }
+            tl.fromTo(c.ok, { attr: { opacity: 0 } }, { attr: { opacity: 1 }, duration: 0.2 }, at + FLY + 0.05);
+            tl.fromTo(c.ok, { scale: 0.4, svgOrigin: c.x + 26 + " " + (c.y - 22) }, { scale: 1, duration: 0.35, ease: "power3.out", svgOrigin: c.x + 26 + " " + (c.y - 22) }, at + FLY + 0.05);
+          });
+
+          // ---------------- choreography ----------------
+          tl.fromTo("#va-page", { clipPath: "inset(0px 100% 0px 0px)" }, { clipPath: "inset(0px 0% 0px 0px)", duration: 0.7, ease: "power3.inOut" }, 0);
+          tl.fromTo("#va-edge", { x: 0, opacity: 1 }, { x: 1920, duration: 0.7, ease: "power3.inOut" }, 0);
+          tl.to("#va-edge", { opacity: 0, duration: 0.1 }, 0.7);
+          tl.fromTo("#va-kick", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.5);
+          tl.fromTo("#va-ttl", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.55);
+          tl.fromTo("#va-ul", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 0.9);
+          tl.fromTo("#va-sheet", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.8);
+          SHEET.rows.forEach((_, i) => tl.fromTo("#va-r" + i, { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 1.3 + i * 0.3));
+          tl.fromTo("#va-more", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 1.3 + SHEET.rows.length * 0.3);
+          tl.fromTo("#va-totals", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 3.4);
+          tl.fromTo(["#va-desk", "#va-lab-desk", "#va-map", "#va-lab-map", "#va-key"], { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0.9);
+          tl.fromTo("#va-person", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 1.1);
+          tl.fromTo("#va-tablet", { rotation: 0 }, { rotation: -8, svgOrigin: P.x + 31 + " " + (P.y + 7), duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 5 }, 2.2);
+          tl.fromTo("#va-base", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 1.6);
+          clinics.forEach((c, i) => tl.fromTo(c.g, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 1.7 + i * 0.1));
+          tl.fromTo("#va-caption", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 9.4);
+          // wipe out (white -> dark), revealing the next dark scene underneath
+          tl.to("#va-page", { clipPath: "inset(0px 0px 0px 100%)", duration: 0.7, ease: "power3.inOut" }, D - 0.7);
+          tl.fromTo("#va-edge", { x: 0, opacity: 0 }, { x: 1920, opacity: 1, duration: 0.7, ease: "power3.inOut", immediateRender: false }, D - 0.7);
+          window.__timelines["value"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

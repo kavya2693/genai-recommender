@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        #routes-root { position: absolute; inset: 0; }
+        #routes-root .panel { position: absolute; border-radius: 16px; border: 2px solid var(--line); background: rgba(15, 26, 38, 0.92); }
+        #routes-root .plab { position: absolute; font-family: var(--mono); font-size: 22px; letter-spacing: 0.1em; color: var(--ink-mute); white-space: nowrap; }
+        #routes-root svg.chart { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+        #routes-root .axis { font-family: var(--mono); font-size: 20px; fill: #8494a6; }
+        #routes-root .readout { position: absolute; left: 170px; top: 250px; font-family: var(--mono); font-size: 26px; color: var(--ink-soft); white-space: nowrap; }
+        #routes-root .readout b { color: var(--c-model); font-size: 40px; font-weight: 700; }
+        #routes-root .stats { position: absolute; left: 1210px; top: 230px; width: 590px; display: flex; flex-direction: column; gap: 22px; }
+        #routes-root .stat { border-radius: 14px; border: 2px solid var(--line); background: var(--panel); padding: 20px 26px; }
+        #routes-root .stat .v { font-family: var(--mono); font-size: 54px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); line-height: 1.05; }
+        #routes-root .stat .l { margin-top: 6px; font-size: 26px; color: var(--ink-soft); }
+        #routes-root .stat.m .v { color: var(--c-model); }
+        #routes-root .stat.o .v { color: var(--c-opt); }
+        /* phase B: one request trace */
+        #routes-root .trace { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+        #routes-root .stp { position: absolute; left: 120px; width: 780px; display: flex; gap: 22px; align-items: flex-start; }
+        #routes-root .stp .k {
+          flex: 0 0 auto; width: 150px; font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 0.1em; padding-top: 4px;
+        }
+        #routes-root .stp .b { font-size: 30px; font-weight: 700; color: var(--ink); line-height: 1.25; }
+        #routes-root .stp .b small { display: block; margin-top: 4px; font-family: var(--mono); font-size: 22px; font-weight: 400; color: var(--ink-soft); }
+        #routes-root .bars { display: flex; flex-direction: column; gap: 10px; }
+        #routes-root .br { display: flex; align-items: center; gap: 14px; font-family: var(--mono); font-size: 22px; color: var(--ink-soft); white-space: nowrap; }
+        #routes-root .br .n { width: 80px; }
+        #routes-root .br .tr { position: relative; width: 300px; height: 20px; border-radius: 10px; background: rgba(178, 191, 204, 0.1); }
+        #routes-root .br .fl { position: absolute; left: 0; top: 0; height: 20px; border-radius: 10px; background: var(--ink-mute); transform-origin: left center; }
+        #routes-root .br.pick .fl { background: var(--c-opt); }
+        #routes-root .br.pick { color: var(--c-opt); font-weight: 700; }
+        #routes-root .br.off { opacity: 0.5; }
+        #routes-root .msg {
+          position: absolute; left: 960px; top: 232px; width: 840px; height: 590px; border-radius: 16px;
+          border: 2px solid rgba(63, 216, 168, 0.6); background: rgba(12, 22, 32, 0.97); overflow: hidden;
+        }
+        #routes-root .msg-h {
+          height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+          border-bottom: 2px solid var(--line); font-family: var(--mono); font-size: 22px; color: var(--ink-soft); white-space: nowrap;
+        }
+        #routes-root .msg-h b { color: var(--c-opt); }
+        #routes-root .msg-b { padding: 22px 28px; font-size: 25px; line-height: 1.42; color: var(--ink); }
+        #routes-root .msg-b p { margin-bottom: 14px; }
+        #routes-root .msg-b .subj { font-weight: 700; color: var(--ink); }
+        #routes-root .msg-b .dim { color: var(--ink-mute); font-family: var(--mono); font-size: 22px; }
+        #routes-root .msg-b em { font-style: normal; font-family: var(--mono); color: var(--c-opt); font-weight: 700; padding: 0 3px; border-radius: 4px; background: rgba(63, 216, 168, 0.12); }
+        #routes-root .msg-f {
+          position: absolute; left: 0; bottom: 0; width: 100%; height: 62px; display: flex; align-items: center; gap: 14px; padding: 0 24px;
+          background: rgba(63, 216, 168, 0.12); border-top: 2px solid rgba(63, 216, 168, 0.5);
+          font-family: var(--mono); font-size: 22px; color: var(--c-opt); font-weight: 700; white-space: nowrap;
+        }
+        #routes-root .src { position: absolute; left: 120px; top: 872px; font-family: var(--mono); font-size: 22px; color: var(--ink-mute); white-space: nowrap; }
+      </style>
+
+      <div id="routes-root" data-composition-id="routes" data-width="1920" data-height="1080">
+        <div class="scene" id="routes-in">
+          <div class="eyebrow" data-layout-allow-overlap id="routes-eyebrow">06 · The system running</div>
+          <div class="scene-title" data-layout-allow-overlap id="routes-title">BERT4Rec trains on a laptop CPU and stops itself.</div>
+          <div class="scene-title" data-layout-allow-overlap id="routes-title2">One real request, end to end, with llama3.2.</div>
+
+          <!-- phase A: training -->
+          <div id="routes-a">
+            <div class="panel" id="routes-chart-p" style="left: 120px; top: 230px; width: 1040px; height: 650px"></div>
+            <div class="readout" id="routes-readout">epoch <b id="routes-ep">0</b> &nbsp; valid NDCG@10 <b id="routes-nd">0.000</b></div>
+            <svg class="chart" id="routes-svg" viewBox="0 0 1920 1080"></svg>
+            <div class="stats">
+              <div class="stat m" id="routes-s1"><div class="v">196 s</div><div class="l">training, 4 CPU threads, no GPU</div></div>
+              <div class="stat m" id="routes-s2"><div class="v">133,345</div><div class="l">parameters · 2 layers · 64-d</div></div>
+              <div class="stat" id="routes-s3"><div class="v">576,746</div><div class="l">training events · 19,960 prescribers</div></div>
+              <div class="stat o" id="routes-s4"><div class="v">epoch 22</div><div class="l">best on validation; stopped at 28</div></div>
+            </div>
+          </div>
+
+          <!-- phase B: one request, end to end -->
+          <div class="trace" id="routes-b">
+            <div class="stp" id="routes-t1" style="top: 236px"><div class="k" style="color: var(--c-data)">REQUEST</div>
+              <div class="b">Prescriber 2651<small>neurology · no rep coverage</small></div></div>
+            <div class="stp" id="routes-t2" style="top: 368px"><div class="k" style="color: var(--c-model)">RANK</div>
+              <div class="b">Somnavel elderly patients series, part 5<small>BERT4Rec top unseen item of 480</small></div></div>
+            <div class="stp" id="routes-t3" style="top: 500px"><div class="k" style="color: var(--c-model)">CHANNEL</div>
+              <div class="bars">
+                <div class="br pick"><span class="n">email</span><span class="tr"><span class="fl" id="routes-f1" style="width: 140px"></span></span>0.194 ✓</div>
+                <div class="br"><span class="n">SMS</span><span class="tr"><span class="fl" id="routes-f2" style="width: 82px"></span></span>0.114</div>
+                <div class="br off"><span class="n">rep</span><span class="tr"><span class="fl" id="routes-f3" style="width: 300px"></span></span>0.416 not eligible</div>
+              </div></div>
+            <div class="stp" id="routes-t4" style="top: 682px"><div class="k" style="color: var(--c-data)">CLAIMS</div>
+              <div class="b">S21 · S20 · S19<small>approved, Somnavel only, top 3</small></div></div>
+            <div class="msg" id="routes-msg">
+              <div class="msg-h"><span><b>EMAIL DRAFT</b> · llama3.2 via Ollama</span><span id="routes-ms">0 ms</span></div>
+              <div class="msg-b">
+                <p class="subj" id="routes-m0">Subject: Educational Content for Neurology Professionals - Somnavel Elderly Patients Series, Part <em>5</em></p>
+                <p class="dim" id="routes-m1">…</p>
+                <p id="routes-m2">The most common adverse reaction with Somnavel in elderly patients was fatigue (<em>4%</em> of patients).</p>
+                <p id="routes-m3">For elderly patients, the recommended Somnavel dose is <em>5 mg</em> once daily; no adjustment is needed at week <em>52</em>.</p>
+                <p id="routes-m4">In the SOM-<em>146</em> study, Somnavel reduced the primary endpoint by <em>47%</em> versus comparator at week <em>52</em>.</p>
+              </div>
+              <div class="msg-f" id="routes-ok">✓ claim check: pass · all 8 numbers in S19–S21 or the title</div>
+            </div>
+            <div class="src" id="routes-src">outputs/drafts_llama3.2.md · excerpt · 3 of 3 drafts pass; the check covers numbers, not wording</div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          const tl = gsap.timeline({ paused: true });
+          const D = 14.6;
+          const NS = "http://www.w3.org/2000/svg";
+          // outputs/bert4rec_training.json history: [epoch, valid NDCG@10]
+          const HIST = [[2, 0.0908], [4, 0.1436], [6, 0.1992], [8, 0.2508], [10, 0.2694], [12, 0.2823], [14, 0.29], [16, 0.2943], [18, 0.2947], [20, 0.3016], [22, 0.3034], [24, 0.3028], [26, 0.3023], [28, 0.2992]];
+          const BEST = 22;
+          const X0 = 210, X1 = 1110, Y0 = 820, Y1 = 330, EMAX = 30, NMAX = 0.35;
+          const sx = (e) => X0 + (e / EMAX) * (X1 - X0), sy = (v) => Y0 - (v / NMAX) * (Y0 - Y1);
+          const svg = document.getElementById("routes-svg");
+          const el = (tag, attrs) => { const n = document.createElementNS(NS, tag); Object.entries(attrs).forEach(([k, v]) => n.setAttribute(k, v)); svg.appendChild(n); return n; };
+          [0, 0.1, 0.2, 0.3].forEach((v) => {
+            el("line", { x1: X0, x2: X1, y1: sy(v), y2: sy(v), stroke: "rgba(178,191,204,0.12)", "stroke-width": 2 });
+            el("text", { x: X0 - 14, y: sy(v) + 7, "text-anchor": "end", class: "axis" }).textContent = v.toFixed(1);
+          });
+          [0, 10, 20, 30].forEach((e) => { el("text", { x: sx(e), y: Y0 + 34, "text-anchor": "middle", class: "axis" }).textContent = e; });
+          const xl = el("text", { x: X1, y: Y0 - 14, "text-anchor": "end", class: "axis" }); xl.textContent = "epoch →";
+          // best-epoch marker
+          const bm = el("line", { x1: sx(BEST), x2: sx(BEST), y1: Y1 - 10, y2: Y0, stroke: "#3fd8a8", "stroke-width": 2, "stroke-dasharray": "6 6", opacity: 0, id: "routes-bm" });
+          const bt = el("text", { x: sx(BEST) - 12, y: Y1 + 10, "text-anchor": "end", class: "axis", fill: "#3fd8a8", opacity: 0, id: "routes-bt" });
+          bt.textContent = "best · 0.303";
+          bt.setAttribute("style", "fill:#3fd8a8;font-weight:700");
+          // the curve
+          const pts = HIST.map(([e, v]) => [sx(e), sy(v)]);
+          const d = "M" + pts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L");
+          const L = pts.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
+          const curve = el("path", { d, fill: "none", stroke: "#b9a2ff", "stroke-width": 5, "stroke-linejoin": "round", "stroke-linecap": "round", "stroke-dasharray": L + " " + L, "stroke-dashoffset": L });
+          const dots = pts.map((p, i) => el("circle", { cx: p[0], cy: p[1], r: HIST[i][0] === BEST ? 10 : 6, fill: HIST[i][0] === BEST ? "#3fd8a8" : "#b9a2ff", opacity: 0 }));
+
+          tl.fromTo("#routes-in", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0);
+          tl.fromTo("#routes-eyebrow", { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.1);
+          tl.fromTo("#routes-title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.2);
+          tl.fromTo(["#routes-chart-p", "#routes-svg", "#routes-readout"], { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0.5);
+          // draw the curve epoch by epoch, readout follows
+          const DRAW0 = 0.9, DRAW = 3.6;
+          tl.to(curve, { attr: { "stroke-dashoffset": 0 }, duration: DRAW, ease: "none" }, DRAW0);
+          const cum = [0];
+          pts.forEach((p, i) => { if (i > 0) cum.push(cum[i - 1] + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1])); });
+          const ep = document.getElementById("routes-ep"), nd = document.getElementById("routes-nd");
+          pts.forEach((p, i) => tl.fromTo(dots[i], { attr: { opacity: 0 } }, { attr: { opacity: 1 }, duration: 0.15 }, DRAW0 + (DRAW * cum[i]) / L));
+          // readout follows the drawn curve, then settles on the best epoch (what early stopping keeps)
+          const rd = { f: 0 };
+          tl.fromTo(rd, { f: 0 }, { f: 1.1, duration: DRAW * 1.1, ease: "none", onUpdate: () => {
+            if (rd.f >= 1.05) { ep.textContent = BEST; nd.textContent = "0.303"; return; }
+            let k = 0;
+            while (k + 1 < cum.length && cum[k + 1] <= rd.f * L) k++;
+            ep.textContent = rd.f <= 0 ? "0" : HIST[k][0];
+            nd.textContent = rd.f <= 0 ? "0.000" : HIST[k][1].toFixed(3);
+          } }, DRAW0);
+          tl.fromTo([bm, bt], { attr: { opacity: 0 } }, { attr: { opacity: 1 }, duration: 0.4 }, DRAW0 + DRAW + 0.2);
+          ["#routes-s1", "#routes-s2", "#routes-s3", "#routes-s4"].forEach((s, i) =>
+            tl.fromTo(s, { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 1.2 + i * 0.5));
+
+          // phase B: one request
+          const P2 = 7.3;
+          tl.to(["#routes-a", "#routes-title"], { opacity: 0, duration: 0.4, ease: "power2.in" }, P2 - 0.4);
+          tl.fromTo("#routes-title2", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, P2);
+          tl.fromTo("#routes-b", { opacity: 0 }, { opacity: 1, duration: 0.01 }, P2 - 0.01);
+          ["#routes-t1", "#routes-t2", "#routes-t3", "#routes-t4"].forEach((s, i) =>
+            tl.fromTo(s, { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, P2 + 0.2 + i * 0.55));
+          ["#routes-f1", "#routes-f2", "#routes-f3"].forEach((f, i) =>
+            tl.fromTo(f, { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, P2 + 1.45 + i * 0.1));
+          tl.fromTo("#routes-msg", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, P2 + 2.5);
+          // draft latency counts up to the logged 6,605 ms while the lines appear
+          const ms = { v: 0 }, mse = document.getElementById("routes-ms");
+          tl.to(ms, { v: 6605, duration: 2.0, ease: "power1.out", onUpdate: () => { mse.textContent = Math.round(ms.v).toLocaleString("en-US") + " ms"; } }, P2 + 2.7);
+          ["#routes-m0", "#routes-m1", "#routes-m2", "#routes-m3", "#routes-m4"].forEach((m, i) =>
+            tl.fromTo(m, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, P2 + 2.9 + i * 0.35));
+          tl.fromTo("#routes-ok", { opacity: 0 }, { opacity: 1, duration: 0.5 }, P2 + 5.0);
+          tl.fromTo("#routes-src", { opacity: 0 }, { opacity: 1, duration: 0.5 }, P2 + 5.2);
+          tl.to("#routes-in", { opacity: 0, duration: 0.4, ease: "power2.in" }, D - 0.4);
+          window.__timelines["routes"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
