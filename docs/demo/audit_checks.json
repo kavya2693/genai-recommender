@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-14 14:39",
+ "generated": "2026-10-14 19:04",
  "commit": "37d49ecc8dcf2a405ea628ac0a26027e2d2aaa41",
  "checks": [
   {
@@ -28,7 +28,7 @@
   },
   {
    "id": "F-04",
-   "shown": "480 pieces of content / top-10 of 480 / 480-item catalogue",
+   "shown": "480 pieces of content / top-10 of 480 / all 480 items",
    "type": "direct",
    "computed": "480",
    "expect": "480",
@@ -156,7 +156,7 @@
   },
   {
    "id": "F-20",
-   "shown": "p95 total 23.27 ms / 23.3 ms",
+   "shown": "95% \u2264 23.27 ms, no LLM / 23.3 ms",
    "type": "direct",
    "computed": "23.27",
    "expect": "23.27",
@@ -172,7 +172,7 @@
   },
   {
    "id": "F-22",
-   "shown": "\u221240 link scanners",
+   "shown": "\u221240 scanner bots",
    "type": "direct",
    "computed": "40",
    "expect": "40",
@@ -188,7 +188,7 @@
   },
   {
    "id": "F-24",
-   "shown": "TF-IDF + SVD 64-d",
+   "shown": "word-based search (TF-IDF + SVD, 64-d, not shown in full)",
    "type": "direct",
    "computed": "true",
    "expect": "true",
@@ -196,7 +196,7 @@
   },
   {
    "id": "F-25",
-   "shown": "2 layers \u00b7 64-d \u00b7 133k params",
+   "shown": "133k params, CPU (05) \u00b7 parameters \u00b7 2 layers (06)",
    "type": "direct",
    "computed": "2 64 133k",
    "expect": "2 64 133k",
@@ -212,7 +212,7 @@
   },
   {
    "id": "F-27",
-   "shown": "top-10 of 480 \u00b7 seen masked",
+   "shown": "top-10 of 480 \u00b7 read ones removed",
    "type": "direct",
    "computed": "true",
    "expect": "true",
@@ -236,7 +236,7 @@
   },
   {
    "id": "F-30",
-   "shown": "llama3.2 \u00b7 3B \u00b7 Ollama \u00b7 CPU \u00b7 stub in tests + CI",
+   "shown": "llama3.2 \u00b7 3B \u00b7 Ollama \u00b7 CPU \u00b7 stand-in for tests",
    "type": "direct",
    "computed": "true",
    "expect": "true",
@@ -252,7 +252,7 @@
   },
   {
    "id": "F-32",
-   "shown": "prior-day history \u00b7 3 rows / request",
+   "shown": "only past history \u00b7 1 row per channel",
    "type": "direct",
    "computed": "true",
    "expect": "true",
@@ -316,7 +316,7 @@
   },
   {
    "id": "F-40",
-   "shown": "Prescriber 2651 \u00b7 Somnavel elderly patients series, part 5 \u00b7 email 0.194 / SMS 0.114 / rep 0.416 \u00b7 S21 S20 S19 \u00b7 6,605 ms",
+   "shown": "Prescriber 2651 \u00b7 Somnavel elderly patients series, part 5 (BERT4Rec's top pick of 480, not yet read) \u00b7 email 0.194 / SMS 0.114 / rep 0.416 \u00b7 S21 S20 S19 \u00b7 6,605 ms",
    "type": "direct",
    "computed": "true",
    "expect": "true",
@@ -412,7 +412,7 @@
   },
   {
    "id": "F-52",
-   "shown": "62%",
+   "shown": "62% of a perfect plan's gain recovered",
    "type": "direct",
    "computed": "62%",
    "expect": "62%",
@@ -428,7 +428,7 @@
   },
   {
    "id": "F-54",
-   "shown": "logged 0% \u00b7 oracle 100%",
+   "shown": "today 0% \u00b7 perfect 100%",
    "type": "direct",
    "computed": "true",
    "expect": "true",
@@ -436,7 +436,7 @@
   },
   {
    "id": "F-55",
-   "shown": "23.3 ms",
+   "shown": "23.3 ms \u00b7 95% of requests take this or less \u00b7 request path, no LLM",
    "type": "direct",
    "computed": "23.3",
    "expect": "23.3",
@@ -444,7 +444,7 @@
   },
   {
    "id": "F-56",
-   "shown": "channel step: 93% of p50",
+   "shown": "channel: 93% of median",
    "type": "derived",
    "computed": "93%",
    "expect": "93%",
@@ -452,7 +452,7 @@
   },
   {
    "id": "F-57",
-   "shown": "policies scored on true engagement",
+   "shown": "plans scored on the data generator's true engagement",
    "type": "direct",
    "computed": "true",
    "expect": "true",
@@ -484,7 +484,7 @@
   },
   {
    "id": "F-61",
-   "shown": "0.316",
+   "shown": "0.316 \u00b7 loses: 0.303 vs 0.316",
    "type": "direct",
    "computed": "0.316",
    "expect": "0.316",
@@ -499,14 +499,6 @@
    "status": "pass"
   },
   {
-   "id": "F-63",
-   "shown": "0.102",
-   "type": "direct",
-   "computed": "0.102",
-   "expect": "0.102",
-   "status": "pass"
-  },
-  {
    "id": "F-64",
    "shown": "0.024",
    "type": "direct",
@@ -516,7 +508,7 @@
   },
   {
    "id": "F-65",
-   "shown": "Markov 0.365 vs 0.232",
+   "shown": "Lookup 0.365 USE \u00b7 BERT4Rec 0.232",
    "type": "direct",
    "computed": "0.365 0.232",
    "expect": "0.365 0.232",
@@ -524,10 +516,34 @@
   },
   {
    "id": "F-66",
-   "shown": "0.461 vs 0.375",
+   "shown": "BERT4Rec 0.461 USE \u00b7 Lookup 0.375",
    "type": "direct",
    "computed": "0.461 0.375",
    "expect": "0.461 0.375",
+   "status": "pass"
+  },
+  {
+   "id": "F-72",
+   "shown": "NDCG@10 0.331 vs 0.316 today \u00b7 a ceiling, not a result",
+   "type": "derived",
+   "computed": "0.331 0.316",
+   "expect": "0.331 0.316",
+   "status": "pass"
+  },
+  {
+   "id": "F-73",
+   "shown": "NEXT \u00b7 NOT BUILT YET \u00b7 The README's next experiment: a blend, or BERT4Rec fed the lookup's score. Not in the code yet.",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
+   "status": "pass"
+  },
+  {
+   "id": "F-74",
+   "shown": "Back to a series after other reads \u00b7 Next format: article \u2192 dosing guide",
+   "type": "direct",
+   "computed": "true",
+   "expect": "true",
    "status": "pass"
   },
   {

@@ -2,9 +2,9 @@
 
 **Repository:** https://github.com/kavya2693/genai-recommender  
 **Numbers taken from commit:** `37d49ec` (outputs last changed in `37d49ec (2026-10-14 12:39:30 +0400)`)  
-**Video:** `docs/demo/demo.mp4` (85.8 s, 1920x1080, 30 fps, silent)  
-**Generated:** 2026-10-14 14:39  
-**Automated checks:** 70 pass · 0 fail · 1 manual (of 71 figures)
+**Video:** `docs/demo/demo.mp4` (89.0 s, 1920x1080, 30 fps, silent)  
+**Generated:** 2026-10-14 19:04  
+**Automated checks:** 72 pass · 0 fail · 1 manual (of 73 figures)
 
 ## How to use this report
 
@@ -30,7 +30,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 | F-01 | 3 chips | 01 | `author's framing` | - | - | general knowledge | manual: Context statement, not a repo output. |
 | F-02 | 4 problem cards | 01 | `README 'The problem'` | README lines 13-27 | - | general knowledge | ✓ verified |
 | F-03 | 20,000 prescribers | 02 | `data/customers.csv` | row count | - | direct | ✓ verified |
-| F-04 | 480 pieces of content / top-10 of 480 / 480-item catalogue | 02, 05, 09 | `data/items.csv` | row count | - | direct | ✓ verified |
+| F-04 | 480 pieces of content / top-10 of 480 / all 480 items | 02, 05, 09 | `data/items.csv` | row count | - | direct | ✓ verified |
 | F-05 | Email, SMS or a rep visit? | 02, 03 | `src/genai_recommender/datagen.py:62` | CHANNELS | - | direct | ✓ verified |
 | F-06 | 626,414 reads | 02 | `data/interactions.csv.gz` | row count | - | direct | ✓ verified |
 | F-07 | over 2 years / 2 yrs | 02, 05 | `src/genai_recommender/datagen.py:65-66; data/interactions.csv.gz ts` | DAYS = 730; first and last read 2024-09-01 .. 2026-08-31 | span = 729 days + 1 | direct | ✓ verified |
@@ -46,19 +46,19 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 | F-17 | RANK 0.67 ms | 05 | `outputs/latency.csv` | stage=rank, p50 ms | - | direct | ✓ verified |
 | F-18 | CHANNEL 18.94 ms | 05 | `outputs/latency.csv` | stage=channel, p50 ms | - | direct | ✓ verified |
 | F-19 | RETRIEVE + DRAFT 0.80 ms | 05 | `outputs/latency.csv` | stage=retrieve+draft, p50 ms | - | direct | ✓ verified |
-| F-20 | p95 total 23.27 ms / 23.3 ms | 05, 08 | `outputs/latency.csv` | stage=total, p95 ms | - | direct | ✓ verified |
+| F-20 | 95% ≤ 23.27 ms, no LLM / 23.3 ms | 05, 08 | `outputs/latency.csv` | stage=total, p95 ms | - | direct | ✓ verified |
 | F-21 | 626k reads · 300k sends · 489 claims | 05 | `data/interactions.csv.gz, data/sends.csv.gz, data/snippets.csv` | row counts 626,414 / 299,722 / 489 | rounded to thousands | derived | ✓ verified |
-| F-22 | −40 link scanners | 05 | `outputs/summary.json` | scanners_dropped | - | direct | ✓ verified |
+| F-22 | −40 scanner bots | 05 | `outputs/summary.json` | scanners_dropped | - | direct | ✓ verified |
 | F-23 | 226 approved only | 05 | `data/snippets.csv` | status == approved | count | direct | ✓ verified |
-| F-24 | TF-IDF + SVD 64-d | 05 | `src/genai_recommender/rag.py:32-44` | SnippetIndex(dim=64) | - | direct | ✓ verified |
-| F-25 | 2 layers · 64-d · 133k params | 05, 06, 09 | `outputs/summary.json` | bert4rec.config.layers, dim; bert4rec.parameters = 133,345 | parameters rounded to thousands | direct | ✓ verified |
+| F-24 | word-based search (TF-IDF + SVD, 64-d, not shown in full) | 05 | `src/genai_recommender/rag.py:32-44` | SnippetIndex(dim=64) | - | direct | ✓ verified |
+| F-25 | 133k params, CPU (05) · parameters · 2 layers (06) | 05, 06 | `outputs/summary.json` | bert4rec.config.layers, dim; bert4rec.parameters = 133,345 | parameters rounded to thousands | direct | ✓ verified |
 | F-26 | seed 7 · 2 yrs | 05 | `src/genai_recommender/datagen.py:455, :66` | seed: int = 7; DAYS = 730 | - | direct | ✓ verified |
-| F-27 | top-10 of 480 · seen masked | 05 | `src/genai_recommender/serve.py:60-61` | mask_seen, argsort[:10] | - | direct | ✓ verified |
+| F-27 | top-10 of 480 · read ones removed | 05 | `src/genai_recommender/serve.py:60-61` | mask_seen, argsort[:10] | - | direct | ✓ verified |
 | F-28 | 5.6–6.6 s / draft | 05 | `outputs/summary.json` | llm_demo.draft_ms = [5570, 6178, 6605] | min, max / 1000 | derived | ✓ verified |
 | F-29 | LLM draft ≈ 300× the rest | 05 | `outputs/summary.json; README line 149` | mean draft_ms 6,118 / total p50 20.44 ms = 299 | mean(draft_ms) / total p50, rounded to the nearest hundred | derived | ✓ verified |
-| F-30 | llama3.2 · 3B · Ollama · CPU · stub in tests + CI | 05 | `README line 148; src/genai_recommender/rag.py StubLLM, OllamaLLM` | - | - | direct | ✓ verified |
+| F-30 | llama3.2 · 3B · Ollama · CPU · stand-in for tests | 05 | `README line 148; src/genai_recommender/rag.py StubLLM, OllamaLLM` | - | - | direct | ✓ verified |
 | F-31 | datagen.py, data.py, channel.py (x3), rag.py (x2), bert4rec.py, serve.py (x2), cli.py, baselines.py | 05 | `src/genai_recommender/` | functions and classes | - | direct | ✓ verified |
-| F-32 | prior-day history · 3 rows / request | 05 | `src/genai_recommender/serve.py:64-72; channel.py:46-58` | - | - | direct | ✓ verified |
+| F-32 | only past history · 1 row per channel | 05 | `src/genai_recommender/serve.py:64-72; channel.py:46-58` | - | - | direct | ✓ verified |
 | F-33 | 14 points, epochs 2-28 | 06 | `outputs/bert4rec_training.json history` | epoch, valid_ndcg10 | - | direct | ✓ verified |
 | F-34 | epoch 22 · 0.303 | 06 | `outputs/bert4rec_training.json` | best_epoch, best_valid_ndcg10 | - | direct | ✓ verified |
 | F-35 | stopped at 28 | 06 | `outputs/bert4rec_training.json` | last history epoch | - | direct | ✓ verified |
@@ -66,7 +66,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 | F-37 | 4 CPU threads, no GPU | 06 | `README line 57; cli.py --threads default min(4, cpu_count)` | - | - | direct | ✓ verified |
 | F-38 | 133,345 | 06 | `outputs/summary.json` | bert4rec.parameters | - | direct | ✓ verified |
 | F-39 | 576,746 training events · 19,960 prescribers | 06, 08, 09 | `outputs/summary.json` | split.train_events, split.users | - | direct | ✓ verified |
-| F-40 | Prescriber 2651 · Somnavel elderly patients series, part 5 · email 0.194 / SMS 0.114 / rep 0.416 · S21 S20 S19 · 6,605 ms | 06 | `outputs/drafts_llama3.2.md lines 44-49` | Customer 2651 section | - | direct | ✓ verified |
+| F-40 | Prescriber 2651 · Somnavel elderly patients series, part 5 (BERT4Rec's top pick of 480, not yet read) · email 0.194 / SMS 0.114 / rep 0.416 · S21 S20 S19 · 6,605 ms | 06 | `outputs/drafts_llama3.2.md lines 44-49` | Customer 2651 section | - | direct | ✓ verified |
 | F-41 | neurology · no rep coverage · rep 0.416 not eligible | 06 | `data/customers.csv` | customer_id 2651 | - | direct | ✓ verified |
 | F-42 | claim check: pass · all 8 numbers in S19–S21 or the title | 06 | `outputs/drafts_llama3.2.md; data/snippets.csv; rag.py grounding_check logic` | - | numbers in draft (regex \d+(\.\d+)?) all in claims + title | derived | ✓ verified |
 | F-43 | 3 of 3 drafts pass | 06 | `outputs/summary.json` | llm_demo.samples, grounded | - | direct | ✓ verified |
@@ -78,28 +78,30 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 | F-49 | (supports every slide 07 row) | 07 | `demo assets/outreach_plan.json ranking_check vs outputs/ranking.csv` | HR@10, NDCG@10, coverage@10 per model | equal at 4 decimals | direct | ✓ verified |
 | F-50 | +8.9% | 08 | `outputs/channel_policy.csv` | engaged per 1k touches: model 206.64 vs logged 189.77 | (206.64 / 189.77 - 1) x 100 = 8.89% | derived | ✓ verified |
 | F-51 | 189.8 → 206.6 per 1,000 | 08 | `outputs/channel_policy.csv` | engaged per 1k touches | - | direct | ✓ verified |
-| F-52 | 62% | 08 | `outputs/channel_policy.csv` | policy='model, same rep budget', share of oracle lift (0.6173) | x 100 | direct | ✓ verified |
+| F-52 | 62% of a perfect plan's gain recovered | 08 | `outputs/channel_policy.csv` | policy='model, same rep budget', share of oracle lift (0.6173) | x 100 | direct | ✓ verified |
 | F-53 | 0.0% (index everything: 73.4%) | 08 | `outputs/retrieval.csv` | any unapproved claim retrieved | x 100 | direct | ✓ verified |
-| F-54 | logged 0% · oracle 100% | 08 | `outputs/channel_policy.csv` | share of oracle lift for logged and oracle | - | direct | ✓ verified |
-| F-55 | 23.3 ms | 08 | `outputs/latency.csv` | stage=total, p95 ms | 1 decimal | direct | ✓ verified |
-| F-56 | channel step: 93% of p50 | 08 | `outputs/latency.csv` | 18.94 / 20.44 | channel p50 / total p50 x 100 = 92.7% | derived | ✓ verified |
-| F-57 | policies scored on true engagement | 08 | `src/genai_recommender/channel.py:274` | docstring | - | direct | ✓ verified |
+| F-54 | today 0% · perfect 100% | 08 | `outputs/channel_policy.csv` | share of oracle lift for logged and oracle | - | direct | ✓ verified |
+| F-55 | 23.3 ms · 95% of requests take this or less · request path, no LLM | 08 | `outputs/latency.csv` | stage=total, p95 ms | 1 decimal | direct | ✓ verified |
+| F-56 | channel: 93% of median | 08 | `outputs/latency.csv` | 18.94 / 20.44 | channel p50 / total p50 x 100 = 92.7% | derived | ✓ verified |
+| F-57 | plans scored on the data generator's true engagement | 08 | `src/genai_recommender/channel.py:274` | docstring | - | direct | ✓ verified |
 | F-58 | 300 timed requests | 08 | `outputs/latency.csv` | requests | - | direct | ✓ verified |
 | F-59 | one make demo run | 08 | `README line 57; outputs/summary.json llm_demo present` | - | - | direct | ✓ verified |
 | F-60 | (rep budget, slide 07 'within budget') | 07, 08 | `outputs/channel_policy.csv; demo assets/outreach_plan.json` | rep share of the logged policy = 0.1328 = export rep_share_historical | - | direct | ✓ verified |
-| F-61 | 0.316 | 09 | `outputs/ranking.csv` | model='last-item Markov', NDCG@10 | - | direct | ✓ verified |
+| F-61 | 0.316 · loses: 0.303 vs 0.316 | 09 | `outputs/ranking.csv` | model='last-item Markov', NDCG@10 | - | direct | ✓ verified |
 | F-62 | 0.303 | 09 | `outputs/ranking.csv` | model='BERT4Rec', NDCG@10 | - | direct | ✓ verified |
-| F-63 | 0.102 | 09 | `outputs/ranking.csv` | model='item-kNN', NDCG@10 | - | direct | ✓ verified |
 | F-64 | 0.024 | 09 | `outputs/ranking.csv` | model='popularity', NDCG@10 | - | direct | ✓ verified |
-| F-65 | Markov 0.365 vs 0.232 | 09 | `outputs/ranking_by_segment.csv` | slice='step=pathway', NDCG@10 | - | direct | ✓ verified |
-| F-66 | 0.461 vs 0.375 | 09 | `outputs/ranking_by_segment.csv` | slice='step=series_resume', NDCG@10 | - | direct | ✓ verified |
+| F-65 | Lookup 0.365 USE · BERT4Rec 0.232 | 09 | `outputs/ranking_by_segment.csv` | slice='step=pathway', NDCG@10 | - | direct | ✓ verified |
+| F-66 | BERT4Rec 0.461 USE · Lookup 0.375 | 09 | `outputs/ranking_by_segment.csv` | slice='step=series_resume', NDCG@10 | - | direct | ✓ verified |
+| F-72 | NDCG@10 0.331 vs 0.316 today · a ceiling, not a result | 09 | `outputs/ranking_by_segment.csv` | slices step=series, series_resume, pathway, pref (users 3,624 + 2,392 + 4,145 + 9,799 = 19,960) | sum(users x max(BERT4Rec, Markov)) / 19,960 = 0.3312; Markov alone = 0.3158 (the same weighting reproduces outputs/ranking.csv for both models) | derived | ✓ verified |
+| F-73 | NEXT · NOT BUILT YET · The README's next experiment: a blend, or BERT4Rec fed the lookup's score. Not in the code yet. | 09 | `README 'Insights and learning'; src/genai_recommender/*.py; serve.py:59` | - | - | direct | ✓ verified |
+| F-74 | Back to a series after other reads · Next format: article → dosing guide | 09 | `README 'The result' slice table` | - | - | direct | ✓ verified |
 | F-67 | MIT | 10 | `LICENSE line 1` | - | - | direct | ✓ verified |
 | F-68 | PyTorch · scikit-learn · Ollama · llama3.2 · Python | 10 | `pyproject.toml; src/genai_recommender/rag.py` | torch, scikit-learn, OllamaLLM(model='llama3.2') | - | direct | ✓ verified |
 | F-69 | $ make demo | 10 | `Makefile` | demo target | - | direct | ✓ verified |
 | F-70 | + 3 llama3.2 drafts | 10 | `Makefile demo target` | --demo-n 3 | - | direct | ✓ verified |
 | F-71 | ~4 min on CPU | 10 | `outputs/summary.json` | wall_seconds = 233.4 | 233.4 / 60 = 3.9 min | derived | ✓ verified |
 
-## 2. Automated check run (2026-10-14 14:39)
+## 2. Automated check run (2026-10-14 19:04)
 
 | ID | Expected on slide | Recomputed from repo | Result |
 |---|---|---|---|
@@ -165,10 +167,12 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 | F-60 | true | true | ✓ pass |
 | F-61 | 0.316 | 0.316 | ✓ pass |
 | F-62 | 0.303 | 0.303 | ✓ pass |
-| F-63 | 0.102 | 0.102 | ✓ pass |
 | F-64 | 0.024 | 0.024 | ✓ pass |
 | F-65 | 0.365 0.232 | 0.365 0.232 | ✓ pass |
 | F-66 | 0.461 0.375 | 0.461 0.375 | ✓ pass |
+| F-72 | 0.331 0.316 | 0.331 0.316 | ✓ pass |
+| F-73 | true | true | ✓ pass |
+| F-74 | true | true | ✓ pass |
 | F-67 | true | true | ✓ pass |
 | F-68 | true | true | ✓ pass |
 | F-69 | true | true | ✓ pass |
@@ -186,12 +190,13 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 | A-05 | The llama3.2 result is three demonstration drafts (3B model, CPU through Ollama, temperature 0.2), not a measured pass rate. | `src/genai_recommender/rag.py:122-138 (OllamaLLM); cli.py:70 (--demo-n 3); README 'Latency of the request path'` | F-28, F-29, F-30, F-40, F-42, F-43, F-70 | figures F-28, F-29, F-30, F-40, F-42, F-43, F-70 and slides 05, 06, 10 change |
 | A-06 | The grounding check only checks numbers: every number in a draft must appear in a retrieved approved claim or the content title. Prose that misstates a claim passes (README 'Known limitations', biggest gap). | `src/genai_recommender/rag.py:163-174 (grounding_check)` | F-10, F-14, F-42, F-43, F-46 | figures F-10, F-14, F-42, F-43, F-46 and slides 03, 04, 06, 07 change |
 | A-07 | Claim retrieval is scored on 79 brand-topic queries with k = 3; the right claims are known by construction (approved snippets written for that brand and topic). | `src/genai_recommender/rag.py:64-104 (retrieval_eval), :53 (k = 3)` | F-13, F-15, F-16, F-53 | figures F-13, F-15, F-16, F-53 and slides 04, 08 change |
-| A-08 | Ranking uses a leave-last-out split (train on all but the last two reads, validate on the second-to-last, test on the last) after dropping prescribers with more than 40 reads in a day (link scanners). All rankers are scored over the full 480-item catalogue with seen items masked. | `src/genai_recommender/data.py:12 (MAX_EVENTS_PER_DAY = 40), :62-84 (make_split); ranking.py:50-54` | F-22, F-27, F-39, F-61, F-62, F-63, F-64, F-65, F-66 | figures F-22, F-27, F-39, F-61, F-62, F-63, F-64, F-65, F-66 and slides 05, 06, 08, 09 change |
-| A-09 | BERT4Rec configuration: 2 layers, 64 dimensions, 2 heads, 30-item window, up to 30 epochs evaluated every 2, early stop with patience 3 on validation NDCG@10 over 3,000 sampled prescribers, seed 7. | `src/genai_recommender/bert4rec.py:19-35 (Config); ranking.py:62 (valid_users = 3000)` | F-25, F-33, F-34, F-35, F-36, F-38 | figures F-25, F-33, F-34, F-35, F-36, F-38 and slides 05, 06, 09 change |
+| A-08 | Ranking uses a leave-last-out split (train on all but the last two reads, validate on the second-to-last, test on the last) after dropping prescribers with more than 40 reads in a day (link scanners). All rankers are scored over the full 480-item catalogue with seen items masked. | `src/genai_recommender/data.py:12 (MAX_EVENTS_PER_DAY = 40), :62-84 (make_split); ranking.py:50-54` | F-22, F-27, F-39, F-61, F-62, F-64, F-65, F-66, F-72 | figures F-22, F-27, F-39, F-61, F-62, F-64, F-65, F-66, F-72 and slides 05, 06, 08, 09 change |
+| A-09 | BERT4Rec configuration: 2 layers, 64 dimensions, 2 heads, 30-item window, up to 30 epochs evaluated every 2, early stop with patience 3 on validation NDCG@10 over 3,000 sampled prescribers, seed 7. | `src/genai_recommender/bert4rec.py:19-35 (Config); ranking.py:62 (valid_users = 3000)` | F-25, F-33, F-34, F-35, F-36, F-38 | figures F-25, F-33, F-34, F-35, F-36, F-38 and slides 05, 06 change |
 | A-10 | Slide 07 plans one touch for every prescriber in the north region at the same point in time the request-path test uses (history before the held-out read), with the deterministic stub drafter. The export retrains every model with the repo's seeds; its ranking table reproduces outputs/ranking.csv exactly. | `demo tools/export_outreach_plan.py; src/genai_recommender/cli.py:115-130 (request)` | F-44, F-45, F-46, F-47, F-48, F-49 | figures F-44, F-45, F-46, F-47, F-48, F-49 and slides 07 change |
 | A-11 | Run times depend on the machine: the README run is an Apple M1 Pro laptop on 4 CPU threads, no GPU. | `README 'The result' line 57; outputs/summary.json wall_seconds, bert4rec.train_seconds` | F-36, F-37, F-71 | figures F-36, F-37, F-71 and slides 06, 10 change |
-| A-12 | Video rounding: probabilities and NDCG to 3 decimals (2 on the slide 07 sheet), shares to 1 decimal or whole percent, latencies to 2 decimals (1 on slide 08), counts with thousands separators; '626k', '300k', '133k', '~4 min' are rounded labels. | `this audit (display convention)` | F-13, F-21, F-25, F-28, F-29, F-47, F-50, F-52, F-55, F-56, F-71 | figures F-13, F-21, F-25, F-28, F-29, F-47, F-50, F-52, F-55, F-56, F-71 and slides 04, 05, 06, 07, 08, 09, 10 change |
+| A-12 | Video rounding: probabilities and NDCG to 3 decimals (2 on the slide 07 sheet), shares to 1 decimal or whole percent, latencies to 2 decimals (1 on slide 08), counts with thousands separators; '626k', '300k', '133k', '~4 min' are rounded labels. | `this audit (display convention)` | F-13, F-21, F-25, F-28, F-29, F-47, F-50, F-52, F-55, F-56, F-71 | figures F-13, F-21, F-25, F-28, F-29, F-47, F-50, F-52, F-55, F-56, F-71 and slides 04, 05, 06, 07, 08, 10 change |
 | A-13 | Slide 01 (industry, everyday problems) is general pharma-commercial knowledge used as context, backed by the README problem statement; it carries no numbers. | `author's framing; README 'The problem'` | F-01, F-02 | figures F-01, F-02 and slides 01 change |
+| A-14 | Slide 09's 'payoff, at most' is an upper bound, not a result: it gives each kind of next step (series, resuming a series, format pathway, free choice) whichever of BERT4Rec and the Markov chain scored higher on it, weighted by prescribers. The step labels come from the generator's truth/ folder, which a real blend could not see, and no blend exists in the code (README 'Insights and learning': the blend is the next experiment). | `outputs/ranking_by_segment.csv (step=* slices); README 'Insights and learning', 'Known limitations'` | F-72, F-73 | figures F-72, F-73 and slides 09 change |
 
 ## 4. Slide by slide
 
@@ -204,6 +209,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 
 > 01 · THE INDUSTRY  
 > Every week, each doctor's next message has to be chosen.  
+> Who sends medical content to doctors every week, and the four problems they run into.  
 > WHO LIVES WITH THIS · Pharma & biotech brand teams · Field sales & omnichannel ops · Medical-legal review  
 > 01 Everyone in a segment gets the same content — Content that doesn't follow on gets ignored  
 > 02 Email, SMS or a rep visit, picked by habit — Reps are the costliest touch and a fixed headcount  
@@ -227,22 +233,24 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 **To change this slide:** Edit the chips (#ctx-c1..3) and cards (#ctx-k1..4) in compositions/s01-context.html. (project folder `docs/demo/source`).
 
 ### Slide 02: This project  
-*6.8-11.6 s · composition `compositions/s02-hook.html`*
+*6.8-12.0 s · composition `compositions/s02-hook.html`*
 
 ![Slide 02](slides/slide-02.jpg)
 
 **On-screen text (verbatim)**
 
 > 02 · THIS PROJECT  
+> The project in one line: pick what each doctor gets next, how it is sent, and what it says.  
 > 20,000 prescribers. 480 pieces of content. Email, SMS or a rep visit?  
 > 626,414 reads over 2 years · 299,722 logged sends · 252 expired claims look like current ones  
+> Prescriber = a doctor who can prescribe. Claim = a medical fact a message may quote, approved by medical-legal review.  
 
 **Figures on this slide**
 
 | ID | Shown | Source · key | Calculation | Check |
 |---|---|---|---|---|
 | F-03 | 20,000 prescribers | `data/customers.csv` · row count | - | ✓ |
-| F-04 | 480 pieces of content / top-10 of 480 / 480-item catalogue | `data/items.csv` · row count | - | ✓ |
+| F-04 | 480 pieces of content / top-10 of 480 / all 480 items | `data/items.csv` · row count | - | ✓ |
 | F-05 | Email, SMS or a rep visit? | `src/genai_recommender/datagen.py:62` · CHANNELS | - | ✓ |
 | F-06 | 626,414 reads | `data/interactions.csv.gz` · row count | - | ✓ |
 | F-07 | over 2 years / 2 yrs | `src/genai_recommender/datagen.py:65-66; data/interactions.csv.gz ts` · DAYS = 730; first and last read 2024-09-01 .. 2026-08-31 | span = 729 days + 1 | ✓ |
@@ -258,7 +266,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 **To change this slide:** Headline spans #hook-l1..l3 and chips #hook-f1..f3 in compositions/s02-hook.html; counts come from data/ (datagen.py Scale). (project folder `docs/demo/source`).
 
 ### Slide 03: How it works (white chapter, slide A)  
-*11.3-19.3 s · composition `compositions/explainer.html (CONFIG.blocks, CONFIG.groups, CONFIG.loop)`*
+*11.7-19.7 s · composition `compositions/explainer.html (CONFIG.blocks, CONFIG.groups, CONFIG.loop)`*
 
 ![Slide 03](slides/slide-03.jpg)
 
@@ -266,6 +274,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 
 > 03 · HOW IT WORKS  
 > From reading history to a message  
+> Read left to right: one doctor's reading history goes in, one checked message comes out.  
 > READING what each doctor read → [RECOMMEND: NEXT CONTENT what to send next → CHANNEL email, SMS or a visit?] → [GROUNDED DRAFT: CLAIMS approved ones only → WRITE a local language model drafts] → MESSAGE OUT ✓ approved claims ✓ right brand ✓ numbers checked  
 > learns reading order (loop over NEXT CONTENT)  
 
@@ -287,7 +296,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 **To change this slide:** Edit CONFIG in compositions/explainer.html; badge truth comes from retrieval.csv and summary.json (F-10). (project folder `docs/demo/source`).
 
 ### Slide 04: The key idea (white chapter, slide B)  
-*19.3-26.3 s · composition `compositions/explainer.html (#ex-b ...)`*
+*19.7-26.7 s · composition `compositions/explainer.html (#ex-b ...)`*
 
 ![Slide 04](slides/slide-04.jpg)
 
@@ -295,6 +304,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 
 > 04 · THE KEY IDEA  
 > The rules live in the index  
+> The index is the list of claims the writer is allowed to search. Expired versions are never put in it.  
 > Only approved claims are searchable — expired and draft versions never enter it  
 > Search stays inside the content's brand — another product's claim can't come back  
 > Every number in the draft is checked — it must appear in a claim it was given  
@@ -316,13 +326,13 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 
 **Illustrative, not data:**
 
-- The three claim cards are real snippets (S19, S22, S23) shortened to their claim; the strike-out animation illustrates that expired claims are never indexed (they are filtered before embedding, not removed at query time).
+- The three claim cards are real snippets (S19, S22, S23) shortened to their claim; the strike-out animation illustrates that expired claims are never indexed (they are filtered before embedding, not removed at query time); the struck rows stay at 80% opacity so they remain readable.
 - The grounding check also accepts numbers from the content title (A-06).
 
 **To change this slide:** Markup under #ex-b in compositions/explainer.html; the footnote figures are F-13, F-15, F-16. (project folder `docs/demo/source`).
 
 ### Slide 05: Architecture  
-*26.0-40.6 s · composition `compositions/s03-architecture.html`*
+*26.4-41.0 s · composition `compositions/s03-architecture.html`*
 
 ![Slide 05](slides/slide-05a.jpg)
 
@@ -332,39 +342,40 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 
 > 05 · ARCHITECTURE  
 > Three models, one request path, one claim check.  
-> serve.py · p50 per stage: RANK 0.67 ms → CHANNEL 18.94 ms → RETRIEVE + DRAFT 0.80 ms → CHECK · p95 total 23.27 ms (stub)  
-> SOURCES: datagen.py Generator (seed 7 · 2 yrs) → writes → data/ (626k reads, 300k sends, 489 claims); truth/ (hidden) → eval only  
-> FEATURES + INDEX: data.py Clean + split (−40 link scanners, leave last out); channel.py Send features (prior-day history, 3 rows / request); rag.py Claim index (226 approved only, TF-IDF + SVD 64-d)  
-> MODELS: bert4rec.py BERT4Rec (2 layers · 64-d, 133k params, CPU); channel.py Channel model (GBM + isotonic, p(engage) × 3); Ollama · CPU llama3.2 · 3B (5.6–6.6 s / draft, stub in tests + CI)  
-> DECIDE: serve.py Rank (top-10 of 480, seen masked); channel.py Pick channel (request: argmax, batch: rep budget); rag.py Drafter (retrieve, prompt, then check)  
-> RESPOND: numbers grounded? → pass → serve.py Recommendation (item_id · top10, channel · channel_p, draft · snippet_ids, grounded, ms per stage); fail → drafts.md  
-> Edge labels: item ids, scores, features, p × 3, top item, item + channel, top-3 approved claims · same brand, prompt, text, draft, pass, fail, writes, eval only  
-> EVALUATE cli.py → outputs/ · ranking.csv vs baselines.py · channel_policy.csv on truth/ · retrieval.csv 3 arms · drafts.md pass/FAIL  
-> Legend: request path · batch (train, fit) · check · store · external model  
-> critical path · LLM draft ≈ 300× the rest  
+> Each box is a file in the repo; data flows left to right. Top strip: time per step, lower is faster.  
+> serve.py · median: RANK 0.67 ms → CHANNEL 18.94 ms → RETRIEVE + DRAFT 0.80 ms → CHECK · 95% ≤ 23.27 ms, no LLM  
+> SOURCES: datagen.py Generator (seed 7 · 2 yrs) → writes → data/ (626k reads, 300k sends, 489 claims); truth/ (eval only, hidden from the models)  
+> FEATURES + INDEX: data.py Clean + split (−40 scanner bots, last read held out); channel.py Send features (only past history, 1 row per channel); rag.py Claim index (226 approved only, word-based search)  
+> MODELS: bert4rec.py BERT4Rec (learns reading order, 133k params, CPU); channel.py Channel model (GBM, calibrated, odds of a read × 3); Ollama · CPU llama3.2 · 3B (5.6–6.6 s / draft, stand-in for tests)  
+> DECIDE: serve.py Rank (top-10 of 480, read ones removed); channel.py Pick channel (1 doctor: best odds, weekly: rep budget); rag.py Drafter (retrieve, prompt, then check)  
+> RESPOND: numbers match? → pass → serve.py Recommendation (next item · top 10, channel · odds, draft · claim ids, check passed?, ms per step); fail → drafts.md  
+> Edge labels: items, scores, inputs, odds ×3, top item, item + channel, top-3 approved claims · same brand, prompt, text, draft, pass, fail, writes  
+> EVALUATE → outputs/ · ranking.csv vs baselines · channel_policy.csv · retrieval.csv 3 setups · drafts.md pass/FAIL  
+> Legend: request path · training run · check · store · external model  
+> slowest step: the LLM draft ≈ 300× the rest  
 
 **Figures on this slide**
 
 | ID | Shown | Source · key | Calculation | Check |
 |---|---|---|---|---|
-| F-04 | 480 pieces of content / top-10 of 480 / 480-item catalogue | `data/items.csv` · row count | - | ✓ |
+| F-04 | 480 pieces of content / top-10 of 480 / all 480 items | `data/items.csv` · row count | - | ✓ |
 | F-07 | over 2 years / 2 yrs | `src/genai_recommender/datagen.py:65-66; data/interactions.csv.gz ts` · DAYS = 730; first and last read 2024-09-01 .. 2026-08-31 | span = 729 days + 1 | ✓ |
 | F-17 | RANK 0.67 ms | `outputs/latency.csv` · stage=rank, p50 ms | - | ✓ |
 | F-18 | CHANNEL 18.94 ms | `outputs/latency.csv` · stage=channel, p50 ms | - | ✓ |
 | F-19 | RETRIEVE + DRAFT 0.80 ms | `outputs/latency.csv` · stage=retrieve+draft, p50 ms | - | ✓ |
-| F-20 | p95 total 23.27 ms / 23.3 ms | `outputs/latency.csv` · stage=total, p95 ms | - | ✓ |
+| F-20 | 95% ≤ 23.27 ms, no LLM / 23.3 ms | `outputs/latency.csv` · stage=total, p95 ms | - | ✓ |
 | F-21 | 626k reads · 300k sends · 489 claims | `data/interactions.csv.gz, data/sends.csv.gz, data/snippets.csv` · row counts 626,414 / 299,722 / 489 | rounded to thousands | ✓ |
-| F-22 | −40 link scanners | `outputs/summary.json` · scanners_dropped | - | ✓ |
+| F-22 | −40 scanner bots | `outputs/summary.json` · scanners_dropped | - | ✓ |
 | F-23 | 226 approved only | `data/snippets.csv` · status == approved | count | ✓ |
-| F-24 | TF-IDF + SVD 64-d | `src/genai_recommender/rag.py:32-44` · SnippetIndex(dim=64) | - | ✓ |
-| F-25 | 2 layers · 64-d · 133k params | `outputs/summary.json` · bert4rec.config.layers, dim; bert4rec.parameters = 133,345 | parameters rounded to thousands | ✓ |
+| F-24 | word-based search (TF-IDF + SVD, 64-d, not shown in full) | `src/genai_recommender/rag.py:32-44` · SnippetIndex(dim=64) | - | ✓ |
+| F-25 | 133k params, CPU (05) · parameters · 2 layers (06) | `outputs/summary.json` · bert4rec.config.layers, dim; bert4rec.parameters = 133,345 | parameters rounded to thousands | ✓ |
 | F-26 | seed 7 · 2 yrs | `src/genai_recommender/datagen.py:455, :66` · seed: int = 7; DAYS = 730 | - | ✓ |
-| F-27 | top-10 of 480 · seen masked | `src/genai_recommender/serve.py:60-61` · mask_seen, argsort[:10] | - | ✓ |
+| F-27 | top-10 of 480 · read ones removed | `src/genai_recommender/serve.py:60-61` · mask_seen, argsort[:10] | - | ✓ |
 | F-28 | 5.6–6.6 s / draft | `outputs/summary.json` · llm_demo.draft_ms = [5570, 6178, 6605] | min, max / 1000 | ✓ |
 | F-29 | LLM draft ≈ 300× the rest | `outputs/summary.json; README line 149` · mean draft_ms 6,118 / total p50 20.44 ms = 299 | mean(draft_ms) / total p50, rounded to the nearest hundred | ✓ |
-| F-30 | llama3.2 · 3B · Ollama · CPU · stub in tests + CI | `README line 148; src/genai_recommender/rag.py StubLLM, OllamaLLM` · - | - | ✓ |
+| F-30 | llama3.2 · 3B · Ollama · CPU · stand-in for tests | `README line 148; src/genai_recommender/rag.py StubLLM, OllamaLLM` · - | - | ✓ |
 | F-31 | datagen.py, data.py, channel.py (x3), rag.py (x2), bert4rec.py, serve.py (x2), cli.py, baselines.py | `src/genai_recommender/` · functions and classes | - | ✓ |
-| F-32 | prior-day history · 3 rows / request | `src/genai_recommender/serve.py:64-72; channel.py:46-58` · - | - | ✓ |
+| F-32 | only past history · 1 row per channel | `src/genai_recommender/serve.py:64-72; channel.py:46-58` · - | - | ✓ |
 
 - *F-29 note:* The README states 'roughly 300 times the rest of the request path combined'.
 
@@ -373,14 +384,16 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 **Illustrative, not data:**
 
 - Packets moving along the wires show execution order, not timing.
-- Solid wires = the per-request path in serve.py; dashed = batch work done once per run (generate, split, train, fit, score).
+- Solid wires = the per-request path in serve.py; dashed (legend: training run) = batch work done once per run (generate, split, train, fit, score).
+- 'word-based search' is the TF-IDF + SVD (64-d) claim embedding (F-24); 'GBM, calibrated' is the GBM with isotonic recalibration; 'odds' are the model's predicted engagement probabilities; '95% ≤ 23.27 ms' is the p95 total with the stub drafter.
+- Nodes outside the critical path dim to 75% opacity in the last phase (kept readable).
 - The fail branch: grounding_check marks the draft grounded=false with the ungrounded numbers, and cli.py writes it as FAIL in drafts_*.md; there is no automatic retry or human approval step in the repo (README 'Known limitations').
 - Pick channel takes the eligible argmax per request; the rep budget applies only in the batch policy (README 'How it works').
 
 **To change this slide:** NODES and the W (wires) object in compositions/s03-architecture.html; band numbers from outputs/latency.csv. (project folder `docs/demo/source`).
 
 ### Slide 06: The system running  
-*40.2-54.8 s · composition `compositions/s04-routes.html (HIST array, request trace markup)`*
+*40.6-55.2 s · composition `compositions/s04-routes.html (HIST array, request trace markup)`*
 
 ![Slide 06](slides/slide-06a.jpg)
 
@@ -390,10 +403,12 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 
 > 06 · THE SYSTEM RUNNING  
 > BERT4Rec trains on a laptop CPU and stops itself.  
-> epoch 22 · valid NDCG@10 0.303 (curve of 14 evaluation points, best · 0.303 marker)  
-> 196 s training, 4 CPU threads, no GPU · 133,345 parameters · 2 layers · 64-d · 576,746 training events · 19,960 prescribers · epoch 22 best on validation; stopped at 28  
+> Score by training round (NDCG@10: where the item a doctor read next lands in a top 10). Higher is better.  
+> epoch 22 · validation NDCG@10 0.303 (curve of 14 evaluation points, best · 0.303 marker, axis: training round (epoch))  
+> 196 s training, 4 CPU threads, no GPU · 133,345 parameters · 2 layers · 576,746 training events · 19,960 prescribers · epoch 22 best round kept; stopped itself at 28  
 > One real request, end to end, with llama3.2.  
-> REQUEST Prescriber 2651 (neurology · no rep coverage) · RANK Somnavel elderly patients series, part 5 (BERT4Rec top unseen item of 480) · CHANNEL email 0.194 ✓, SMS 0.114, rep 0.416 not eligible · CLAIMS S21 · S20 · S19 (approved, Somnavel only, top 3)  
+> One doctor in, one checked email out. Bars = predicted chance the doctor reads it; the best allowed channel wins.  
+> REQUEST Prescriber 2651 (neurology · no rep coverage) · RANK Somnavel elderly patients series, part 5 (BERT4Rec's top pick of 480, not yet read) · CHANNEL email 0.194 ✓, SMS 0.114, rep 0.416 not eligible · CLAIMS S21 · S20 · S19 (approved, Somnavel only, top 3)  
 > EMAIL DRAFT · llama3.2 via Ollama · 6,605 ms — Subject line + 3 claim sentences (excerpt) — ✓ claim check: pass · all 8 numbers in S19–S21 or the title  
 > outputs/drafts_llama3.2.md · excerpt · 3 of 3 drafts pass; the check covers numbers, not wording  
 
@@ -401,7 +416,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 
 | ID | Shown | Source · key | Calculation | Check |
 |---|---|---|---|---|
-| F-25 | 2 layers · 64-d · 133k params | `outputs/summary.json` · bert4rec.config.layers, dim; bert4rec.parameters = 133,345 | parameters rounded to thousands | ✓ |
+| F-25 | 133k params, CPU (05) · parameters · 2 layers (06) | `outputs/summary.json` · bert4rec.config.layers, dim; bert4rec.parameters = 133,345 | parameters rounded to thousands | ✓ |
 | F-33 | 14 points, epochs 2-28 | `outputs/bert4rec_training.json history` · epoch, valid_ndcg10 | - | ✓ |
 | F-34 | epoch 22 · 0.303 | `outputs/bert4rec_training.json` · best_epoch, best_valid_ndcg10 | - | ✓ |
 | F-35 | stopped at 28 | `outputs/bert4rec_training.json` · last history epoch | - | ✓ |
@@ -409,7 +424,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 | F-37 | 4 CPU threads, no GPU | `README line 57; cli.py --threads default min(4, cpu_count)` · - | - | ✓ |
 | F-38 | 133,345 | `outputs/summary.json` · bert4rec.parameters | - | ✓ |
 | F-39 | 576,746 training events · 19,960 prescribers | `outputs/summary.json` · split.train_events, split.users | - | ✓ |
-| F-40 | Prescriber 2651 · Somnavel elderly patients series, part 5 · email 0.194 / SMS 0.114 / rep 0.416 · S21 S20 S19 · 6,605 ms | `outputs/drafts_llama3.2.md lines 44-49` · Customer 2651 section | - | ✓ |
+| F-40 | Prescriber 2651 · Somnavel elderly patients series, part 5 (BERT4Rec's top pick of 480, not yet read) · email 0.194 / SMS 0.114 / rep 0.416 · S21 S20 S19 · 6,605 ms | `outputs/drafts_llama3.2.md lines 44-49` · Customer 2651 section | - | ✓ |
 | F-41 | neurology · no rep coverage · rep 0.416 not eligible | `data/customers.csv` · customer_id 2651 | - | ✓ |
 | F-42 | claim check: pass · all 8 numbers in S19–S21 or the title | `outputs/drafts_llama3.2.md; data/snippets.csv; rag.py grounding_check logic` · - | numbers in draft (regex \d+(\.\d+)?) all in claims + title | ✓ |
 | F-43 | 3 of 3 drafts pass | `outputs/summary.json` · llm_demo.samples, grounded | - | ✓ |
@@ -425,7 +440,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 **To change this slide:** HIST array and trace markup in compositions/s04-routes.html; the trace is the Customer 2651 section of outputs/drafts_llama3.2.md. (project folder `docs/demo/source`).
 
 ### Slide 07: End-user value (white)  
-*54.5-67.5 s · composition `compositions/value.html (SHEET block injected by tools/inject_sheet.py)`*
+*54.9-67.9 s · composition `compositions/value.html (SHEET block injected by tools/inject_sheet.py)`*
 
 ![Slide 07](slides/slide-07.jpg)
 
@@ -433,7 +448,8 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 
 > 07 · END-USER VALUE  
 > What the field team gets  
-> OUTREACH PLAN · NORTH REGION · 3,275 PRESCRIBERS — columns HCP, SPECIALTY, NEXT CONTENT, CHANNEL, PROB, CLAIMS, OK  
+> One row per doctor (HCP = healthcare professional): what to send and how. ODDS = predicted chance they read it.  
+> OUTREACH PLAN · NORTH REGION · 3,275 PRESCRIBERS — columns HCP, SPECIALTY, NEXT CONTENT, CHANNEL, ODDS, CLAIMS, OK  
 > HCP-0001 Cardiology · Ixarond: real-world evidence (article) · EMAIL 0.19 · S162 S161 S160 ✓  
 > HCP-0002 Immunology · Dermavex switching from prior therapy series, part … · REP 0.65 · S171 S169 S170 ✓  
 > HCP-0003 Cardiology · Zentrivo real-world evidence series, part 5 · EMAIL 0.15 · S180 S179 S178 ✓  
@@ -469,7 +485,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 **To change this slide:** Re-run tools/export_outreach_plan.py, then tools/inject_sheet.py (--rows picks the rows); layout in compositions/value.html. (project folder `docs/demo/source`).
 
 ### Slide 08: Results  
-*67.2-76.0 s · composition `compositions/s05-results.html (stats array)`*
+*67.6-76.4 s · composition `compositions/s05-results.html (stats array)`*
 
 ![Slide 08](slides/slide-08.jpg)
 
@@ -477,27 +493,28 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 
 > 08 · RESULTS · ONE MAKE DEMO RUN  
 > More engagement, same reps, zero unapproved claims.  
+> First two cards: higher is better (a perfect plan knows every doctor's true response). Last two: lower is better.  
 > CHANNEL POLICY +8.9% engagement at the same rep budget · 189.8 → 206.6 per 1,000  
-> CHANNEL POLICY 62% of a perfect oracle's lift recovered · logged 0% · oracle 100%  
+> CHANNEL POLICY 62% of a perfect plan's gain recovered · today 0% · perfect 100%  
 > CLAIM RETRIEVAL 0.0% queries that reach an unapproved claim · index everything: 73.4%  
-> REQUEST PATH 23.3 ms p95 per request, stub drafter · channel step: 93% of p50  
-> 19,960 prescribers · 79 claim queries · 300 timed requests · policies scored on true engagement  
+> REQUEST PATH, NO LLM 23.3 ms 95% of requests take this or less · channel: 93% of median  
+> 19,960 prescribers · 79 claim queries · 300 timed requests · plans scored on the data generator's true engagement  
 
 **Figures on this slide**
 
 | ID | Shown | Source · key | Calculation | Check |
 |---|---|---|---|---|
 | F-16 | 79 test queries / 79 claim queries | `outputs/retrieval.csv` · queries | - | ✓ |
-| F-20 | p95 total 23.27 ms / 23.3 ms | `outputs/latency.csv` · stage=total, p95 ms | - | ✓ |
+| F-20 | 95% ≤ 23.27 ms, no LLM / 23.3 ms | `outputs/latency.csv` · stage=total, p95 ms | - | ✓ |
 | F-39 | 576,746 training events · 19,960 prescribers | `outputs/summary.json` · split.train_events, split.users | - | ✓ |
 | F-50 | +8.9% | `outputs/channel_policy.csv` · engaged per 1k touches: model 206.64 vs logged 189.77 | (206.64 / 189.77 - 1) x 100 = 8.89% | ✓ |
 | F-51 | 189.8 → 206.6 per 1,000 | `outputs/channel_policy.csv` · engaged per 1k touches | - | ✓ |
-| F-52 | 62% | `outputs/channel_policy.csv` · policy='model, same rep budget', share of oracle lift (0.6173) | x 100 | ✓ |
+| F-52 | 62% of a perfect plan's gain recovered | `outputs/channel_policy.csv` · policy='model, same rep budget', share of oracle lift (0.6173) | x 100 | ✓ |
 | F-53 | 0.0% (index everything: 73.4%) | `outputs/retrieval.csv` · any unapproved claim retrieved | x 100 | ✓ |
-| F-54 | logged 0% · oracle 100% | `outputs/channel_policy.csv` · share of oracle lift for logged and oracle | - | ✓ |
-| F-55 | 23.3 ms | `outputs/latency.csv` · stage=total, p95 ms | 1 decimal | ✓ |
-| F-56 | channel step: 93% of p50 | `outputs/latency.csv` · 18.94 / 20.44 | channel p50 / total p50 x 100 = 92.7% | ✓ |
-| F-57 | policies scored on true engagement | `src/genai_recommender/channel.py:274` · docstring | - | ✓ |
+| F-54 | today 0% · perfect 100% | `outputs/channel_policy.csv` · share of oracle lift for logged and oracle | - | ✓ |
+| F-55 | 23.3 ms · 95% of requests take this or less · request path, no LLM | `outputs/latency.csv` · stage=total, p95 ms | 1 decimal | ✓ |
+| F-56 | channel: 93% of median | `outputs/latency.csv` · 18.94 / 20.44 | channel p50 / total p50 x 100 = 92.7% | ✓ |
+| F-57 | plans scored on the data generator's true engagement | `src/genai_recommender/channel.py:274` · docstring | - | ✓ |
 | F-58 | 300 timed requests | `outputs/latency.csv` · requests | - | ✓ |
 | F-59 | one make demo run | `README line 57; outputs/summary.json llm_demo present` · - | - | ✓ |
 | F-60 | (rep budget, slide 07 'within budget') | `outputs/channel_policy.csv; demo assets/outreach_plan.json` · rep share of the logged policy = 0.1328 = export rep_share_historical | - | ✓ |
@@ -506,47 +523,60 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 
 **Illustrative, not data:**
 
+- 'Perfect plan' = the oracle policy (true engagement known, same rep budget); 'today' = the logged historical policy. The 0.0% card is mint because zero unapproved claims is the good outcome.
 - Mini bars: card 1 = engaged per 1,000 as a share of the oracle's 217.1 (logged → model); card 2 = share of oracle lift; card 3 = 73.4% → 0%; card 4 = channel step's share of the p50 request.
 
 **To change this slide:** The stats array and card text in compositions/s05-results.html. (project folder `docs/demo/source`).
 
-### Slide 09: What didn't win  
-*75.6-81.8 s · composition `compositions/s06-twist.html`*
+### Slide 09: Lesson and fix  
+*76.0-85.0 s · composition `compositions/s06-twist.html`*
 
 ![Slide 09](slides/slide-09.jpg)
 
 **On-screen text (verbatim)**
 
-> 09 · WHAT DIDN'T WIN  
-> BERT4Rec does not beat a last-item Markov chain.  
-> NDCG@10 over the full 480-item catalogue, last read held out, 19,960 prescribers  
-> Last-item Markov (what usually follows) 0.316 · BERT4Rec (133k params, 196 s training) 0.303 · Item-kNN (co-read items) 0.102 · Popularity 0.024  
-> Why: format pathways are first-order (Markov 0.365 vs 0.232). BERT4Rec wins only when a reader resumes a series (0.461 vs 0.375). Next: blend the two.  
+> 09 · LESSON AND FIX  
+> A last-read lookup beats the transformer. So next I blend the two.  
+> NDCG@10 = how high the item each doctor really read next sits in our top 10 (1 = first). Higher is better.  
+> THE LESSON · It beats popularity, not the lookup · NDCG@10, all 19,960 doctors, all 480 items  
+> BERT4Rec (the transformer) 0.303 · Popularity (the usual bar to beat) 0.024 TRAP · Last-read lookup (Markov chain) 0.316  
+> Beating popularity is where most write-ups stop. Against the lookup, the transformer loses: 0.303 vs 0.316.  
+> NEXT · NOT BUILT YET · Blend: each wins a different step  
+> Back to a series after other reads: BERT4Rec 0.461 USE · Lookup 0.375  
+> Next format: article → dosing guide: Lookup 0.365 USE · BERT4Rec 0.232  
+> The README's next experiment: a blend, or BERT4Rec fed the lookup's score. Not in the code yet.  
+> PAYOFF, AT MOST · If each kind of step used its better model: NDCG@10 0.331 vs 0.316 today · a ceiling, not a result  
 
 **Figures on this slide**
 
 | ID | Shown | Source · key | Calculation | Check |
 |---|---|---|---|---|
-| F-04 | 480 pieces of content / top-10 of 480 / 480-item catalogue | `data/items.csv` · row count | - | ✓ |
-| F-25 | 2 layers · 64-d · 133k params | `outputs/summary.json` · bert4rec.config.layers, dim; bert4rec.parameters = 133,345 | parameters rounded to thousands | ✓ |
+| F-04 | 480 pieces of content / top-10 of 480 / all 480 items | `data/items.csv` · row count | - | ✓ |
 | F-39 | 576,746 training events · 19,960 prescribers | `outputs/summary.json` · split.train_events, split.users | - | ✓ |
-| F-61 | 0.316 | `outputs/ranking.csv` · model='last-item Markov', NDCG@10 | - | ✓ |
+| F-61 | 0.316 · loses: 0.303 vs 0.316 | `outputs/ranking.csv` · model='last-item Markov', NDCG@10 | - | ✓ |
 | F-62 | 0.303 | `outputs/ranking.csv` · model='BERT4Rec', NDCG@10 | - | ✓ |
-| F-63 | 0.102 | `outputs/ranking.csv` · model='item-kNN', NDCG@10 | - | ✓ |
 | F-64 | 0.024 | `outputs/ranking.csv` · model='popularity', NDCG@10 | - | ✓ |
-| F-65 | Markov 0.365 vs 0.232 | `outputs/ranking_by_segment.csv` · slice='step=pathway', NDCG@10 | - | ✓ |
-| F-66 | 0.461 vs 0.375 | `outputs/ranking_by_segment.csv` · slice='step=series_resume', NDCG@10 | - | ✓ |
+| F-65 | Lookup 0.365 USE · BERT4Rec 0.232 | `outputs/ranking_by_segment.csv` · slice='step=pathway', NDCG@10 | - | ✓ |
+| F-66 | BERT4Rec 0.461 USE · Lookup 0.375 | `outputs/ranking_by_segment.csv` · slice='step=series_resume', NDCG@10 | - | ✓ |
+| F-72 | NDCG@10 0.331 vs 0.316 today · a ceiling, not a result | `outputs/ranking_by_segment.csv` · slices step=series, series_resume, pathway, pref (users 3,624 + 2,392 + 4,145 + 9,799 = 19,960) | sum(users x max(BERT4Rec, Markov)) / 19,960 = 0.3312; Markov alone = 0.3158 (the same weighting reproduces outputs/ranking.csv for both models) | ✓ |
+| F-73 | NEXT · NOT BUILT YET · The README's next experiment: a blend, or BERT4Rec fed the lookup's score. Not in the code yet. | `README 'Insights and learning'; src/genai_recommender/*.py; serve.py:59` · - | - | ✓ |
+| F-74 | Back to a series after other reads · Next format: article → dosing guide | `README 'The result' slice table` · - | - | ✓ |
 
-**Assumptions:** A-08, A-09, A-12
+- *F-72 note:* Upper bound only (A-14): step labels come from truth/, so a deployable blend cannot route on them.
+
+**Assumptions:** A-08, A-09, A-12, A-14
 
 **Illustrative, not data:**
 
-- Bar lengths: 1,000 px track = NDCG@10 0.35.
+- Bars share one scale in both panels: 220 px = NDCG@10 0.5. All compared bars are neutral grey; coral marks only the TRAP label (popularity is the misleading comparison) and mint marks the model a blend would use for that kind of step.
+- The right panel is labelled NEXT because the repo has no fix built for this result (F-73); USE marks what a blend would pick, not something the code does today.
+- 'Next format: article → dosing guide' is the README's own example for the format-pathway slice; the slice covers every format pathway within a brand.
+- The payoff strip is an upper bound (A-14), not a measured result.
 
-**To change this slide:** Rows #twist-r1..r4 (bar widths are inline styles) in compositions/s06-twist.html. (project folder `docs/demo/source`).
+**To change this slide:** Panels #twist-left / #twist-right and the payoff strip in compositions/s06-twist.html (bar widths are inline styles on the shared scale). (project folder `docs/demo/source`).
 
 ### Slide 10: End card  
-*81.4-85.8 s · composition `compositions/s07-end.html`*
+*84.6-89.0 s · composition `compositions/s07-end.html`*
 
 ![Slide 10](slides/slide-10.jpg)
 
@@ -557,6 +587,7 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 > github.com/kavya2693/genai-recommender  
 > PyTorch · scikit-learn · Ollama · llama3.2 · Python  
 > $ make demo   # 19,960 prescribers + 3 llama3.2 drafts, ~4 min on CPU  
+> One command rebuilds the results tables behind the numbers in this video.  
 
 **Figures on this slide**
 
@@ -583,12 +614,13 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 | A-05: The llama3 | F-28, F-29, F-30, F-40, F-42, F-43, F-70 | 05, 06, 10 | `Makefile (demo target); src/genai_recommender/rag.py:130` | `make demo` |
 | A-06: The grounding check only checks numbers: every number in a draft must appear in a retrieved approved claim or the content title | F-10, F-14, F-42, F-43, F-46 | 03, 04, 06, 07 | `src/genai_recommender/rag.py:163-174` | `make demo` |
 | A-07: Claim retrieval is scored on 79 brand-topic queries with k = 3; the right claims are known by construction (approved snippets written for that brand and topic) | F-13, F-15, F-16, F-53 | 04, 08 | `src/genai_recommender/rag.py` | `make demo` |
-| A-08: Ranking uses a leave-last-out split (train on all but the last two reads, validate on the second-to-last, test on the last) after dropping prescribers with more than 40 reads in a day (link scanners) | F-22, F-27, F-39, F-61, F-62, F-63, F-64, F-65, F-66 | 05, 06, 08, 09 | `src/genai_recommender/data.py` | `make demo` |
-| A-09: BERT4Rec configuration: 2 layers, 64 dimensions, 2 heads, 30-item window, up to 30 epochs evaluated every 2, early stop with patience 3 on validation NDCG@10 over 3,000 sampled prescribers, seed 7 | F-25, F-33, F-34, F-35, F-36, F-38 | 05, 06, 09 | `src/genai_recommender/bert4rec.py:19-35` | `make demo; export_outreach_plan.py + inject_sheet.py` |
+| A-08: Ranking uses a leave-last-out split (train on all but the last two reads, validate on the second-to-last, test on the last) after dropping prescribers with more than 40 reads in a day (link scanners) | F-22, F-27, F-39, F-61, F-62, F-64, F-65, F-66, F-72 | 05, 06, 08, 09 | `src/genai_recommender/data.py` | `make demo` |
+| A-09: BERT4Rec configuration: 2 layers, 64 dimensions, 2 heads, 30-item window, up to 30 epochs evaluated every 2, early stop with patience 3 on validation NDCG@10 over 3,000 sampled prescribers, seed 7 | F-25, F-33, F-34, F-35, F-36, F-38 | 05, 06 | `src/genai_recommender/bert4rec.py:19-35` | `make demo; export_outreach_plan.py + inject_sheet.py` |
 | A-10: Slide 07 plans one touch for every prescriber in the north region at the same point in time the request-path test uses (history before the held-out read), with the deterministic stub drafter | F-44, F-45, F-46, F-47, F-48, F-49 | 07 | `tools/export_outreach_plan.py (--region); tools/inject_sheet.py (--rows)` | `export_outreach_plan.py + inject_sheet.py; hyperframes render` |
 | A-11: Run times depend on the machine: the README run is an Apple M1 Pro laptop on 4 CPU threads, no GPU | F-36, F-37, F-71 | 06, 10 | `-` | `make demo` |
-| A-12: Video rounding: probabilities and NDCG to 3 decimals (2 on the slide 07 sheet), shares to 1 decimal or whole percent, latencies to 2 decimals (1 on slide 08), counts with thousands separators; '626k', '300k', '133k', '~4 min' are rounded labels | F-13, F-21, F-25, F-28, F-29, F-47, F-50, F-52, F-55, F-56, F-71 | 04, 05, 06, 07, 08, 09, 10 | `the composition file named on each slide` | `hyperframes render` |
+| A-12: Video rounding: probabilities and NDCG to 3 decimals (2 on the slide 07 sheet), shares to 1 decimal or whole percent, latencies to 2 decimals (1 on slide 08), counts with thousands separators; '626k', '300k', '133k', '~4 min' are rounded labels | F-13, F-21, F-25, F-28, F-29, F-47, F-50, F-52, F-55, F-56, F-71 | 04, 05, 06, 07, 08, 10 | `the composition file named on each slide` | `hyperframes render` |
 | A-13: Slide 01 (industry, everyday problems) is general pharma-commercial knowledge used as context, backed by the README problem statement; it carries no numbers | F-01, F-02 | 01 | `compositions/s01-context.html` | `hyperframes render` |
+| A-14: Slide 09's 'payoff, at most' is an upper bound, not a result: it gives each kind of next step (series, resuming a series, format pathway, free choice) whichever of BERT4Rec and the Markov chain scored higher on it, weighted by prescribers | F-72, F-73 | 09 | `compositions/s06-twist.html` | `make demo; hyperframes render` |
 
 ## 6. Known differences and caveats
 
@@ -599,6 +631,9 @@ python3 docs/demo/source/tools/build_audit_report.py docs/demo/source/audit/fact
 - The headline sequence result depends on the generator: format pathways are first-order by construction, which favours the Markov chain (README 'Known limitations').
 - Slide 07 is one region's plan exported by re-running the repo's pipeline (A-10); HCP ids are row positions, not people.
 - Slide 01 statements are general industry knowledge (A-13).
+- Slide 09 no longer shows item-kNN (NDCG@10 0.102), the free-choice and same-series slices or the new-content slice; the README 'The result' tables still report all of them.
+- Slide 09's payoff strip (0.331) is a ceiling computed with generator step labels a deployed blend could not see; the blend is not built (A-14, F-73).
+- The request path in serve.py still ranks with BERT4Rec even though the Markov chain scores higher overall; the README states this and names the blend as the next experiment.
 
 ## Appendix: environment
 

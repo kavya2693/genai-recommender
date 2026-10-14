@@ -15,7 +15,7 @@ Everything needed to rebuild the silent walkthrough (`docs/demo/demo.mp4`) and t
 | `compositions/s03-architecture.html` | Slide 05, the architecture diagram (`NODES` and wires `W`) |
 | `compositions/s04-routes.html` | Slide 06, the BERT4Rec training curve (`HIST`) and one llama3.2 request trace |
 | `compositions/value.html` | Slide 07, the outreach plan and field-team scene (data injected by `tools/inject_sheet.py`) |
-| `compositions/s05-results.html`, `s06-twist.html`, `s07-end.html` | Slides 08-10, results, what didn't win, end card |
+| `compositions/s05-results.html`, `s06-twist.html`, `s07-end.html` | Slides 08-10, results, lesson and fix, end card |
 | `assets/outreach_plan.json` | One region's outreach plan, exported by `tools/export_outreach_plan.py` |
 | `audit/facts.yaml` | Every figure (F-xx), assumption (A-xx), slide text and check expression used by the report |
 | `tools/build_audit_report.py` | Builds the slide stills, re-checks every figure against the repo outputs, writes MD, DOCX and PDF |
@@ -49,7 +49,7 @@ PYTHONPATH=src .venv/bin/python docs/demo/source/tools/export_outreach_plan.py \
 python3 docs/demo/source/tools/inject_sheet.py docs/demo/source/assets/outreach_plan.json \
   docs/demo/source/compositions/value.html --rows 0,1,2,9,15,66
 
-# 3. render (85.8 s, 1920x1080, 30 fps, silent) and compress
+# 3. render (89 s, 1920x1080, 30 fps, silent) and compress
 cd docs/demo/source
 npx --yes hyperframes@0.8.156 check
 npx --yes hyperframes@0.8.156 render -f 30 -q looks -o renders/genai-recommender-master.mp4

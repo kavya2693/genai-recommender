@@ -8,7 +8,7 @@
         #routes-root .panel { position: absolute; border-radius: 16px; border: 2px solid var(--line); background: rgba(15, 26, 38, 0.92); }
         #routes-root .plab { position: absolute; font-family: var(--mono); font-size: 22px; letter-spacing: 0.1em; color: var(--ink-mute); white-space: nowrap; }
         #routes-root svg.chart { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
-        #routes-root .axis { font-family: var(--mono); font-size: 20px; fill: #8494a6; }
+        #routes-root .axis { font-family: var(--mono); font-size: 22px; fill: #9fb0c2; }
         #routes-root .readout { position: absolute; left: 170px; top: 250px; font-family: var(--mono); font-size: 26px; color: var(--ink-soft); white-space: nowrap; }
         #routes-root .readout b { color: var(--c-model); font-size: 40px; font-weight: 700; }
         #routes-root .stats { position: absolute; left: 1210px; top: 230px; width: 590px; display: flex; flex-direction: column; gap: 22px; }
@@ -32,7 +32,7 @@
         #routes-root .br .fl { position: absolute; left: 0; top: 0; height: 20px; border-radius: 10px; background: var(--ink-mute); transform-origin: left center; }
         #routes-root .br.pick .fl { background: var(--c-opt); }
         #routes-root .br.pick { color: var(--c-opt); font-weight: 700; }
-        #routes-root .br.off { opacity: 0.5; }
+        #routes-root .br.off { opacity: 0.75; } /* stays >= 4.5:1 */
         #routes-root .msg {
           position: absolute; left: 960px; top: 232px; width: 840px; height: 590px; border-radius: 16px;
           border: 2px solid rgba(63, 216, 168, 0.6); background: rgba(12, 22, 32, 0.97); overflow: hidden;
@@ -52,7 +52,7 @@
           background: rgba(63, 216, 168, 0.12); border-top: 2px solid rgba(63, 216, 168, 0.5);
           font-family: var(--mono); font-size: 22px; color: var(--c-opt); font-weight: 700; white-space: nowrap;
         }
-        #routes-root .src { position: absolute; left: 120px; top: 872px; font-family: var(--mono); font-size: 22px; color: var(--ink-mute); white-space: nowrap; }
+        #routes-root .src { position: absolute; left: 120px; top: 872px; font-family: var(--mono); font-size: 22px; color: var(--ink-soft); white-space: nowrap; }
       </style>
 
       <div id="routes-root" data-composition-id="routes" data-width="1920" data-height="1080">
@@ -63,23 +63,25 @@
 
           <!-- phase A: training -->
           <div id="routes-a">
+            <div class="scene-sub" id="routes-sub-a">Score by training round (NDCG@10: where the item a doctor read next lands in a top 10). Higher is better.</div>
             <div class="panel" id="routes-chart-p" style="left: 120px; top: 230px; width: 1040px; height: 650px"></div>
-            <div class="readout" id="routes-readout">epoch <b id="routes-ep">0</b> &nbsp; valid NDCG@10 <b id="routes-nd">0.000</b></div>
+            <div class="readout" id="routes-readout">epoch <b id="routes-ep">0</b> &nbsp; validation NDCG@10 <b id="routes-nd">0.000</b></div>
             <svg class="chart" id="routes-svg" viewBox="0 0 1920 1080"></svg>
             <div class="stats">
               <div class="stat m" id="routes-s1"><div class="v">196 s</div><div class="l">training, 4 CPU threads, no GPU</div></div>
-              <div class="stat m" id="routes-s2"><div class="v">133,345</div><div class="l">parameters · 2 layers · 64-d</div></div>
+              <div class="stat m" id="routes-s2"><div class="v">133,345</div><div class="l">parameters · 2 layers</div></div>
               <div class="stat" id="routes-s3"><div class="v">576,746</div><div class="l">training events · 19,960 prescribers</div></div>
-              <div class="stat o" id="routes-s4"><div class="v">epoch 22</div><div class="l">best on validation; stopped at 28</div></div>
+              <div class="stat o" id="routes-s4"><div class="v">epoch 22</div><div class="l">best round kept; stopped itself at 28</div></div>
             </div>
           </div>
 
           <!-- phase B: one request, end to end -->
           <div class="trace" id="routes-b">
+            <div class="scene-sub" id="routes-sub-b">One doctor in, one checked email out. Bars = predicted chance the doctor reads it; the best allowed channel wins.</div>
             <div class="stp" id="routes-t1" style="top: 236px"><div class="k" style="color: var(--c-data)">REQUEST</div>
               <div class="b">Prescriber 2651<small>neurology · no rep coverage</small></div></div>
             <div class="stp" id="routes-t2" style="top: 368px"><div class="k" style="color: var(--c-model)">RANK</div>
-              <div class="b">Somnavel elderly patients series, part 5<small>BERT4Rec top unseen item of 480</small></div></div>
+              <div class="b">Somnavel elderly patients series, part 5<small>BERT4Rec's top pick of 480, not yet read</small></div></div>
             <div class="stp" id="routes-t3" style="top: 500px"><div class="k" style="color: var(--c-model)">CHANNEL</div>
               <div class="bars">
                 <div class="br pick"><span class="n">email</span><span class="tr"><span class="fl" id="routes-f1" style="width: 140px"></span></span>0.194 ✓</div>
@@ -121,7 +123,7 @@
             el("text", { x: X0 - 14, y: sy(v) + 7, "text-anchor": "end", class: "axis" }).textContent = v.toFixed(1);
           });
           [0, 10, 20, 30].forEach((e) => { el("text", { x: sx(e), y: Y0 + 34, "text-anchor": "middle", class: "axis" }).textContent = e; });
-          const xl = el("text", { x: X1, y: Y0 - 14, "text-anchor": "end", class: "axis" }); xl.textContent = "epoch →";
+          const xl = el("text", { x: X0 + 24, y: Y0 - 14, "text-anchor": "start", class: "axis" }); xl.textContent = "training round (epoch) →";
           // best-epoch marker
           const bm = el("line", { x1: sx(BEST), x2: sx(BEST), y1: Y1 - 10, y2: Y0, stroke: "#3fd8a8", "stroke-width": 2, "stroke-dasharray": "6 6", opacity: 0, id: "routes-bm" });
           const bt = el("text", { x: sx(BEST) - 12, y: Y1 + 10, "text-anchor": "end", class: "axis", fill: "#3fd8a8", opacity: 0, id: "routes-bt" });
@@ -137,6 +139,7 @@
           tl.fromTo("#routes-in", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0);
           tl.fromTo("#routes-eyebrow", { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.1);
           tl.fromTo("#routes-title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.2);
+          tl.fromTo("#routes-sub-a", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0.5);
           tl.fromTo(["#routes-chart-p", "#routes-svg", "#routes-readout"], { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0.5);
           // draw the curve epoch by epoch, readout follows
           const DRAW0 = 0.9, DRAW = 3.6;
@@ -163,6 +166,7 @@
           tl.to(["#routes-a", "#routes-title"], { opacity: 0, duration: 0.4, ease: "power2.in" }, P2 - 0.4);
           tl.fromTo("#routes-title2", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, P2);
           tl.fromTo("#routes-b", { opacity: 0 }, { opacity: 1, duration: 0.01 }, P2 - 0.01);
+          tl.fromTo("#routes-sub-b", { opacity: 0 }, { opacity: 1, duration: 0.5 }, P2 + 0.2);
           ["#routes-t1", "#routes-t2", "#routes-t3", "#routes-t4"].forEach((s, i) =>
             tl.fromTo(s, { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, P2 + 0.2 + i * 0.55));
           ["#routes-f1", "#routes-f2", "#routes-f3"].forEach((f, i) =>
@@ -175,7 +179,7 @@
             tl.fromTo(m, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, P2 + 2.9 + i * 0.35));
           tl.fromTo("#routes-ok", { opacity: 0 }, { opacity: 1, duration: 0.5 }, P2 + 5.0);
           tl.fromTo("#routes-src", { opacity: 0 }, { opacity: 1, duration: 0.5 }, P2 + 5.2);
-          tl.to("#routes-in", { opacity: 0, duration: 0.4, ease: "power2.in" }, D - 0.4);
+          tl.to("#routes-in", { opacity: 0, duration: 0.4, ease: "power2.in" }, D - 0.8); // dip: fully out before the next scene starts
           window.__timelines["routes"] = tl;
         })();
       </script>

@@ -12,7 +12,7 @@
           background: var(--panel); padding: 44px 34px 36px; display: flex; flex-direction: column; overflow: hidden;
         }
         #results-root .card .bar { position: absolute; left: 0; top: 0; width: 100%; height: 6px; }
-        #results-root .card .layer { font-family: var(--mono); font-size: 20px; letter-spacing: 0.12em; text-transform: uppercase; }
+        #results-root .card .layer { font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
         #results-root .card .big {
           margin-top: 18px; font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 104px;
           font-weight: 700; letter-spacing: -0.05em; line-height: 1; white-space: nowrap;
@@ -31,27 +31,28 @@
         #results-root .rsk .bar, #results-root .rsk .mini-fill { background: var(--c-risk); }
         #results-root .rsk .big, #results-root .rsk .layer { color: var(--c-risk); }
         #results-root .card .big small { font-size: 52px; letter-spacing: -0.02em; }
-        #results-root .footnote { position: absolute; left: 120px; top: 840px; font-family: var(--mono); font-size: 24px; color: var(--ink-mute); }
+        #results-root .footnote { position: absolute; left: 120px; top: 840px; font-size: 26px; font-weight: 500; color: var(--ink-soft); }
       </style>
       <div id="results-root" data-composition-id="results" data-width="1920" data-height="1080">
         <div class="scene" id="results-in">
           <div class="eyebrow" data-layout-allow-overlap id="results-eyebrow">08 · Results · one make demo run</div>
           <div class="scene-title" data-layout-allow-overlap id="results-title">More engagement, same reps, zero unapproved claims.</div>
+          <div class="scene-sub" id="results-sub">First two cards: higher is better (a perfect plan knows every doctor's true response). Last two: lower is better.</div>
           <div class="cards">
             <div class="card opt" id="results-c1"><div class="bar"></div><div class="layer">channel policy</div>
               <div class="big"><span id="results-v1">+0.0</span>%</div><div class="lab">engagement at the same rep budget</div>
               <div class="mini"><div class="mini-fill" id="results-m1"></div></div><div class="foot">189.8 → 206.6 per 1,000</div></div>
             <div class="card opt" id="results-c2"><div class="bar"></div><div class="layer">channel policy</div>
-              <div class="big"><span id="results-v2">0</span>%</div><div class="lab">of a perfect oracle's lift recovered</div>
-              <div class="mini"><div class="mini-fill" id="results-m2"></div></div><div class="foot">logged 0% · oracle 100%</div></div>
-            <div class="card rsk" id="results-c3"><div class="bar"></div><div class="layer">claim retrieval</div>
+              <div class="big"><span id="results-v2">0</span>%</div><div class="lab">of a perfect plan's gain recovered</div>
+              <div class="mini"><div class="mini-fill" id="results-m2"></div></div><div class="foot">today 0% · perfect 100%</div></div>
+            <div class="card opt" id="results-c3"><div class="bar"></div><div class="layer">claim retrieval</div>
               <div class="big"><span id="results-v3">73.4</span>%</div><div class="lab">queries that reach an unapproved claim</div>
               <div class="mini"><div class="mini-fill" id="results-m3"></div></div><div class="foot">index everything: 73.4%</div></div>
-            <div class="card mod" id="results-c4"><div class="bar"></div><div class="layer">request path</div>
-              <div class="big"><span id="results-v4">0.0</span><small> ms</small></div><div class="lab">p95 per request, stub drafter</div>
-              <div class="mini"><div class="mini-fill" id="results-m4"></div></div><div class="foot">channel step: 93% of p50</div></div>
+            <div class="card mod" id="results-c4"><div class="bar"></div><div class="layer">request path, no LLM</div>
+              <div class="big"><span id="results-v4">0.0</span><small> ms</small></div><div class="lab">95% of requests take this or less</div>
+              <div class="mini"><div class="mini-fill" id="results-m4"></div></div><div class="foot">channel: 93% of median</div></div>
           </div>
-          <div class="footnote" id="results-foot">19,960 prescribers · 79 claim queries · 300 timed requests · policies scored on true engagement</div>
+          <div class="footnote" id="results-foot">19,960 prescribers · 79 claim queries · 300 timed requests · plans scored on the data generator's true engagement</div>
         </div>
       </div>
       <script>
@@ -61,6 +62,7 @@
           tl.fromTo("#results-in", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0);
           tl.fromTo("#results-eyebrow", { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.1);
           tl.fromTo("#results-title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.2);
+          tl.fromTo("#results-sub", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0.5);
           const stats = [
             { v: "results-v1", m: "#results-m1", from: 0, to: 8.9, d: 1, plus: true, r0: 189.7675 / 217.1052, r: 206.6443 / 217.1052 },
             { v: "results-v2", m: "#results-m2", from: 0, to: 62, d: 0, r0: 0, r: 0.6173 },
@@ -76,7 +78,7 @@
             tl.fromTo(s.m, { scaleX: s.r0 }, { scaleX: s.r, duration: 1.6, ease: "power3.out" }, at + 0.3);
           });
           tl.fromTo("#results-foot", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 2.8);
-          tl.to("#results-in", { opacity: 0, duration: 0.4, ease: "power2.in" }, D - 0.4);
+          tl.to("#results-in", { opacity: 0, duration: 0.4, ease: "power2.in" }, D - 0.8); // dip: fully out before the next scene starts
           window.__timelines["results"] = tl;
         })();
       </script>
