@@ -134,11 +134,10 @@ def main(argv: list[str] | None = None) -> None:
     # ~50 ms of a 3-row prediction that takes 4 ms single-threaded.
     with threadpool_limits(limits=1):
         lat, recs = latency_table(lambda i: request(stub, i), len(users))
-    lat_all = lat
-    lat_all.to_csv(args.out / "latency.csv", index=False)
+    lat.to_csv(args.out / "latency.csv", index=False)
     log(
         f"\nrequest latency, {len(users)} requests, 1 thread, stub drafter\n"
-        + lat_all.round(2).to_string(index=False)
+        + lat.round(2).to_string(index=False)
     )
     (args.out / "drafts_stub.md").write_text(_md_drafts(recs[:5], t.items, "stub"))
     grounded = float(np.mean([bool(r.draft["grounded"]) for r in recs]))
@@ -168,7 +167,7 @@ def main(argv: list[str] | None = None) -> None:
         "channel_calibration": cr.calibration.round(4).to_dict(orient="records"),
         "channel_policy": cr.policy.round(4).to_dict(orient="records"),
         "retrieval": ret.round(4).to_dict(orient="records"),
-        "latency": lat_all.round(2).to_dict(orient="records"),
+        "latency": lat.round(2).to_dict(orient="records"),
         "stub_grounded_share": grounded,
         "llm_demo": llm_summary,
         "split": split.meta,
