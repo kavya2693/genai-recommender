@@ -8,9 +8,9 @@ Next piece of content, the channel to send it through, and a message that only q
 claims, for a commercial team that reaches 20,000 prescribers by email, SMS and rep visits.
 Measured against the baselines it has to beat, including the one it does not.
 
-[![86-second silent walkthrough: the problem, the three decisions, the architecture, the results, the finding that did not go to plan and the weekly outreach sheet](docs/demo/demo.gif)](docs/demo/demo.mp4)
+[![86-second silent walkthrough: the problem, the three decisions, the architecture, the results, the finding that did not go to plan and the weekly outreach sheet](docs/demo/demo.gif)](https://kavya2693.github.io/work-demos/genai-recommender.mp4)
 
-*86-second silent walkthrough. Click for the full video ([MP4, 5 MB](docs/demo/demo.mp4)).*
+*86-second silent walkthrough. [Play the full video](https://kavya2693.github.io/work-demos/genai-recommender.mp4) · [download the MP4, 5 MB](docs/demo/demo.mp4).*
 
 📄 **Audit report:** every figure and assumption in the video, traced to its source — [PDF](docs/demo/AUDIT_REPORT.pdf) · [Word](docs/demo/AUDIT_REPORT.docx) · [Markdown](docs/demo/AUDIT_REPORT.md)
 
